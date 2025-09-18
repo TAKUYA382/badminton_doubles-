@@ -1,0 +1,136 @@
+<!-- app/views/admin/members/index.html.erb -->
+
+<div class="page">
+  <!-- ヘッダー -->
+  <div class="page-header" style="display:flex;align-items:flex-end;gap:12px;justify-content:space-between;flex-wrap:wrap">
+    <div>
+      <h1 class="page-title" style="margin:0;">メンバー一覧</h1>
+      <% if params[:q].present? %>
+        <p class="muted" style="margin:4px 0 0;">検索結果：<strong><%= params[:q] %></strong></p>
+      <% end %>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <%= link_to "新規メンバー", new_admin_member_path, class: "btn btn-primary link-btn" %>
+      <%= link_to "イベント一覧へ", admin_events_path, class: "btn btn-outline link-btn" %>
+    </div>
+  </div>
+
+  <!-- 検索フォーム -->
+  <div class="card" style="margin-bottom:12px;">
+    <%= form_with url: admin_members_path, method: :get, local: true do %>
+      <div class="form-row">
+        <div class="field" style="min-width:320px;">
+          <label>名前・よみで検索</label>
+          <%= text_field_tag :q, params[:q], placeholder: "例）田中 / たなか / ﾀﾅｶ", autofocus: true %>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end;">
+          <button class="btn btn-primary">検索</button>
+          <% if params[:q].present? %>
+            <%= link_to "クリア", admin_members_path, class: "btn btn-outline link-btn" %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- 一覧テーブル -->
+  <div class="table-wrap card">
+    <table class="table">
+      <thead>
+        <tr>
+          <!-- 名前 -->
+          <th style="min-width:180px;">
+            <%= link_to admin_members_path(sort: 'name', direction: sort_direction_toggle('name'), q: params[:q]) do %>
+              名前
+              <% if params[:sort] == 'name' %>
+                <span class="muted"><%= params[:direction] == 'asc' ? '▲' : '▼' %></span>
+              <% end %>
+            <% end %>
+          </th>
+
+          <!-- よみ（ふりがな） -->
+          <th style="min-width:160px;">
+            <%= link_to admin_members_path(sort: 'name_kana', direction: sort_direction_toggle('name_kana'), q: params[:q]) do %>
+              よみ
+              <% if params[:sort] == 'name_kana' %>
+                <span class="muted"><%= params[:direction] == 'asc' ? '▲' : '▼' %></span>
+              <% end %>
+            <% end %>
+          </th>
+
+          <!-- 学年 -->
+          <th style="min-width:80px;">
+            <%= link_to admin_members_path(sort: 'grade', direction: sort_direction_toggle('grade'), q: params[:q]) do %>
+              学年
+              <% if params[:sort] == 'grade' %>
+                <span class="muted"><%= params[:direction] == 'asc' ? '▲' : '▼' %></span>
+              <% end %>
+            <% end %>
+          </th>
+
+          <!-- 性別 -->
+          <th style="min-width:90px;">
+            <%= link_to admin_members_path(sort: 'gender', direction: sort_direction_toggle('gender'), q: params[:q]) do %>
+              性別
+              <% if params[:sort] == 'gender' %>
+                <span class="muted"><%= params[:direction] == 'asc' ? '▲' : '▼' %></span>
+              <% end %>
+            <% end %>
+          </th>
+
+          <!-- レベル -->
+          <th style="min-width:120px;">
+            <%= link_to admin_members_path(sort: 'skill_level', direction: sort_direction_toggle('skill_level'), q: params[:q]) do %>
+              レベル
+              <% if params[:sort] == 'skill_level' %>
+                <span class="muted"><%= params[:direction] == 'asc' ? '▲' : '▼' %></span>
+              <% end %>
+            <% end %>
+          </th>
+
+          <th style="width:1%;"></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @members.each do |member| %>
+          <tr>
+            <td>
+              <strong><%= member.name %></strong>
+            </td>
+            <td>
+              <% if member.name_kana.present? %>
+                <span class="badge badge-gray"><%= member.name_kana %></span>
+              <% else %>
+                <span class="muted">—</span>
+              <% end %>
+            </td>
+            <td><span class="badge badge-gray"><%= member.grade_label %></span></td>
+            <td><span class="badge badge-gray"><%= member.gender_label %></span></td>
+            <td>
+              <% lvl = member.skill_level %>
+              <span class="badge"
+                    style="background:<%= { 'advanced'=>'#dbeafe', 'middle'=>'#e9d5ff', 'beginner'=>'#fef3c7' }[lvl] %>;color:#111;">
+                <%= member.skill_label %>
+              </span>
+            </td>
+            <td style="text-align:right;white-space:nowrap;">
+              <%= link_to '編集', edit_admin_member_path(member), class: "link-btn btn btn-outline" %>
+              <%= link_to '削除', admin_member_path(member),
+                          data: { confirm: '本当に削除しますか？' },
+                          method: :delete,
+                          class: "link-btn btn btn-danger",
+                          style: "margin-left:6px;" %>
+            </td>
+          </tr>
+        <% end %>
+
+        <% if @members.blank? %>
+          <tr>
+            <td colspan="6" class="muted">該当するメンバーがいません。</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

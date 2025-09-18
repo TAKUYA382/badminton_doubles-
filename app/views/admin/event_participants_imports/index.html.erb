@@ -1,0 +1,99 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title"><%= @event.title %> の参加者管理</h1>
+    <p class="page-sub">日付：<%= @event.date %> / コート数：<%= @event.court_count %></p>
+    <p><%= link_to "イベント詳細へ戻る", admin_event_path(@event), class: "btn-outline" %></p>
+  </div>
+
+  <div class="layout-2col">
+    <!-- 左：登録済み参加者 -->
+    <section class="col-left" style="max-width:520px;">
+      <h2>登録済み（このイベント）</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr><th>名前</th><th>学年</th><th>性別</th><th>レベル</th><th>状態</th><th></th></tr>
+          </thead>
+          <tbody>
+            <% @event_participants.each do |ep| %>
+              <% m = ep.member %>
+              <tr>
+                <td><%= m.name %></td>
+                <td><%= m.grade_label %></td>
+                <td><%= m.gender_label %></td>
+                <td><%= m.skill_label %></td>
+                <td>
+                  <%= form_with url: admin_event_attendance_path(@event, ep), method: :patch, local: true do %>
+                    <%= select_tag :status,
+                          options_for_select(
+                            [["参加", "attending"], ["未定", "undecided"], ["欠席", "absent"]],
+                            selected: ep.status
+                          ),
+                          class: "select-compact" %>
+                    <button class="btn btn-primary btn-compact">更新</button>
+                  <% end %>
+                </td>
+                <td>
+                  <%= button_to "外す", admin_event_attendance_path(@event, ep),
+                        method: :delete,
+                        data: { turbo_confirm: "このイベントの参加者から外します。よろしいですか？" },
+                        class: "btn btn-outline btn-compact" %>
+                </td>
+              </tr>
+            <% end %>
+            <% if @event_participants.empty? %>
+              <tr><td colspan="6">まだ参加者が登録されていません。</td></tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 右：未登録メンバーを追加 -->
+    <section class="col-right">
+      <h2>未登録メンバーを追加</h2>
+
+      <%= form_with url: admin_event_attendances_path(@event), method: :get, local: true, class: "form-row", style: "margin-bottom:8px" do %>
+        <div class="field">
+          <label>名前で検索</label>
+          <%= text_field_tag :q, params[:q], placeholder: "例）田中", class: "input" %>
+        </div>
+        <div class="field" style="align-self:flex-end">
+          <button class="btn btn-outline">検索</button>
+          <%= link_to "クリア", admin_event_attendances_path(@event), class: "btn btn-outline" %>
+        </div>
+      <% end %>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr><th>名前</th><th>学年</th><th>性別</th><th>レベル</th><th>初期状態</th><th></th></tr>
+          </thead>
+          <tbody>
+            <% @candidates.each do |m| %>
+              <tr>
+                <td><%= m.name %></td>
+                <td><%= m.grade_label %></td>
+                <td><%= m.gender_label %></td>
+                <td><%= m.skill_label %></td>
+                <td>
+                  <%= form_with url: admin_event_attendances_path(@event), method: :post, local: true do %>
+                    <%= hidden_field_tag :member_id, m.id %>
+                    <%= select_tag :status,
+                          options_for_select([["参加","attending"],["未定","undecided"],["欠席","absent"]], "attending"),
+                          class: "select-compact" %>
+                    <button class="btn btn-primary btn-compact">追加</button>
+                  <% end %>
+                </td>
+                <td></td>
+              </tr>
+            <% end %>
+            <% if @candidates.empty? %>
+              <tr><td colspan="6">候補メンバーはありません。（左に全員登録済みか、検索条件をご確認ください）</td></tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>

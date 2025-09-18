@@ -1,0 +1,51 @@
+@charset "UTF-8";
+
+/* セクション本体（斜めクリップ＋余白） */
+.detail {
+  background-color: #ffed58;
+  clip-path: polygon(0 0, 100% 10%, 100% 90%, 0 100%);
+  padding: 100px 0;
+  margin-bottom: 80px;
+}
+
+/* 横並びと左右比率 */
+.detail .item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detail .item .img { width: 55%; margin-right: 5%; }
+.detail .item .img img { width: 100%; }
+
+.detail .item .text { width: 40%; }
+.detail .item .text .title {
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 30px;
+}
+.detail .item .text .description { line-height: 1.8; }
+
+/* 便利な中央幅ラッパ（必要なら他ページでも使えます） */
+.wrapper-1080 { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+/* 共通セクションタイトル（サイトに既にあれば不要） */
+.section-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 40px;
+}
+
+/* レスポンシブ（本の指定に近い値） */
+@media screen and (max-width: 767px) {
+  .detail {
+    clip-path: polygon(0 0, 100% 5%, 100% 95%, 0 100%);
+    padding: 80px 0;
+    margin-bottom: 40px;
+  }
+  .detail .item { flex-direction: column; }
+  .detail .item .img { width: 100%; margin: 0 0 40px; }
+  .detail .item .text { width: 100%; }
+  .detail .item .text .title { text-align: center; }
+}

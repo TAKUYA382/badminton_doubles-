@@ -1,0 +1,25 @@
+current directory: C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/date-3.4.1/ext/date
+C:/Ruby34-x64/bin/ruby.exe extconf.rb
+checking for rb_category_warn()... yes
+checking for timezone in time.h with -Werror... no
+checking for altzone in time.h with -Werror... no
+creating Makefile
+
+current directory: C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/date-3.4.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20250913-1964-9ez4b7 sitelibdir\=./.gem.20250913-1964-9ez4b7 clean
+
+current directory: C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/date-3.4.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20250913-1964-9ez4b7 sitelibdir\=./.gem.20250913-1964-9ez4b7
+generating date_core-x64-mingw-ucrt.def
+compiling date_core.c
+compiling date_parse.c
+compiling date_strftime.c
+compiling date_strptime.c
+linking shared-object date_core.so
+
+current directory: C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/date-3.4.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20250913-1964-9ez4b7 sitelibdir\=./.gem.20250913-1964-9ez4b7 install
+/usr/bin/install -c -m 0755 date_core.so ./.gem.20250913-1964-9ez4b7
+
+current directory: C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/date-3.4.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20250913-1964-9ez4b7 sitelibdir\=./.gem.20250913-1964-9ez4b7 clean

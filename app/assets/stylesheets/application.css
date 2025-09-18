@@ -1,0 +1,227 @@
+/* ===============================
+   ルート変数（全体で共通使用）
+   =============================== */
+:root {
+  --bg: #fff;
+  --fg: #111;
+  --muted: #6b7280;
+  --accent: #6b46c1;
+  --border: #cbd5e1;
+  --header-bg: #222;
+  --header-fg: #fff;
+}
+
+/* ===============================
+   ベース
+   =============================== */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  line-height: 1.6;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.muted { color: var(--muted); font-size: 14px; }
+
+/* ===============================
+   ヘッダー
+   =============================== */
+.site-header {
+  background: var(--header-bg);
+  color: var(--header-fg);
+  padding: 10px 14px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.site-header .brand {
+  font-weight: 700;
+  background: #fff1;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.site-header nav a { color: var(--header-fg); margin-right: 12px; }
+.site-header .right { margin-left: auto; }
+
+/* ===============================
+   ページ
+   =============================== */
+.page { padding: 20px; }
+h1 { font-size: 34px; margin: 8px 0 16px; }
+h2 { font-size: 22px; margin: 24px 0 10px; }
+h3 { font-size: 18px; margin: 16px 0 8px; }
+
+/* ===============================
+   カード & ラップ
+   =============================== */
+.card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.table-wrap { overflow-x: auto; }
+
+/* ===============================
+   テーブル
+   =============================== */
+.table {
+  border-collapse: collapse;
+  min-width: 520px;
+  width: 100%;
+}
+.table th, .table td {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+.table th {
+  background: #f8fafc;
+  font-weight: 600;
+}
+.table tbody tr:hover {
+  background: #f9fafb;
+  transition: .2s;
+}
+
+/* ===============================
+   2カラム（イベント詳細）
+   =============================== */
+.layout-2col {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.layout-2col .col-left {
+  flex: 0 0 360px;
+  max-width: 420px;
+  position: sticky;
+  top: 64px;
+  max-height: calc(100vh - 80px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  padding: 8px;
+  background: #fff;
+  border-radius: 6px;
+}
+.layout-2col .col-right { flex: 1 1 auto; min-width: 0; }
+
+@media (max-width: 900px) {
+  .layout-2col { flex-direction: column; }
+  .layout-2col .col-left { position: static; max-height: none; width: 100%; }
+}
+
+/* ===============================
+   ボタン
+   =============================== */
+.btn { display: inline-block; padding: 6px 14px; border-radius: 4px; cursor: pointer; transition: .2s; border: none; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { opacity: .9; }
+.btn-outline { background: #fff; border: 1px solid var(--accent); color: var(--accent); }
+.btn-outline:hover { background: var(--accent); color: #fff; }
+.btn-danger { background: #dc2626; color: #fff; }
+.btn-danger:hover { opacity: .9; }
+.btn-compact { padding: 4px 8px; font-size: 13px; }
+.link-btn { text-decoration: none; } /* a.btn 用 */
+
+/* ===============================
+   フォーム
+   =============================== */
+.form-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.form-row .field { min-width: 220px; }
+
+input[type="text"], input[type="date"], input[type="number"], select, textarea {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 14px;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(107, 70, 193, .3);
+}
+
+/* ===============================
+   バッジ（お好みで色変更OK）
+   =============================== */
+.badge { display: inline-block; padding: .25rem .5rem; border-radius: 9999px; font-size: .85rem; line-height: 1; border: 1px solid rgba(0,0,0,.08); background: #f3f4f6; color: #111; }
+.badge-gray  { background: #f3f4f6; color:#111; }
+.badge-blue  { background: #dbeafe; color:#111; }
+.badge-green { background: #dcfce7; color:#111; }
+.badge-amber { background: #fef3c7; color:#111; }
+.badge-violet{ background: #ede9fe; color:#111; }
+
+/* A+〜D（例） */
+.badge-lvl-A_plus { background:#1e3a8a; color:#fff; }
+.badge-lvl-A      { background:#1d4ed8; color:#fff; }
+.badge-lvl-A_minus{ background:#3b82f6; color:#fff; }
+.badge-lvl-B_plus { background:#047857; color:#fff; }
+.badge-lvl-B      { background:#10b981; color:#111; }
+.badge-lvl-B_minus{ background:#6ee7b7; color:#111; }
+.badge-lvl-C_plus { background:#f59e0b; color:#111; }
+.badge-lvl-C      { background:#fbbf24; color:#111; }
+.badge-lvl-C_minus{ background:#fde68a; color:#111; }
+.badge-lvl-D_plus { background:#e11d48; color:#fff; }
+.badge-lvl-D      { background:#fda4af; color:#111; }
+
+/* ===============================
+   ドラッグ用チップ（イベント詳細左側）
+   =============================== */
+.member-chip {
+  display: inline-block;
+  background: #f1f5f9;
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 9999px;
+  margin: 4px;
+  cursor: grab;
+  user-select: none;
+}
+.member-chip:active { cursor: grabbing; }
+
+/* スロットエディタ（右側テーブルの差し替え枠） */
+.slot-editor {
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+.slot-editor.drop-target.dragover { background: #faf5ff; border-color: var(--accent); }
+
+/* ===============================
+   管理：対人関係セクション
+   =============================== */
+.relation-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  background: #fff;
+  margin-top: 20px;
+}
+.relation-section .form-inline {
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+}
+.relation-section .form-inline select { min-width: 160px; }
+
+/* ===============================
+   フッター（任意）
+   =============================== */
+.site-footer {
+  text-align: center;
+  padding: 12px;
+  font-size: 14px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+}

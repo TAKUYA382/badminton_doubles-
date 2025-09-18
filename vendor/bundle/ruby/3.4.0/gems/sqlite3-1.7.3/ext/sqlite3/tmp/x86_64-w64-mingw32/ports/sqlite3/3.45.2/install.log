@@ -1,0 +1,17 @@
+make[1]: ディレクトリ '/c/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ext/sqlite3/tmp/x86_64-w64-mingw32/ports/sqlite3/3.45.2/sqlite-autoconf-3450200' に入ります
+ /usr/bin/mkdir -p 'C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/lib'
+ /bin/sh ./libtool   --mode=install /usr/bin/install -c   libsqlite3.la 'C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/lib'
+libtool: install: /usr/bin/install -c .libs/libsqlite3.lai C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/lib/libsqlite3.la
+libtool: install: /usr/bin/install -c .libs/libsqlite3.a C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/lib/libsqlite3.a
+libtool: install: chmod 644 C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/lib/libsqlite3.a
+libtool: install: ranlib C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/lib/libsqlite3.a
+ /usr/bin/mkdir -p 'C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/bin'
+  /bin/sh ./libtool   --mode=install /usr/bin/install -c sqlite3.exe 'C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/bin'
+libtool: install: /usr/bin/install -c sqlite3.exe C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/bin/sqlite3.exe
+ /usr/bin/mkdir -p 'C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/include'
+ /usr/bin/install -c -m 644 sqlite3.h sqlite3ext.h 'C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/include'
+ /usr/bin/mkdir -p 'C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/share/man/man1'
+ /usr/bin/install -c -m 644 sqlite3.1 'C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/share/man/man1'
+ /usr/bin/mkdir -p 'C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/lib/pkgconfig'
+ /usr/bin/install -c -m 644 sqlite3.pc 'C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2/lib/pkgconfig'
+make[1]: ディレクトリ '/c/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ext/sqlite3/tmp/x86_64-w64-mingw32/ports/sqlite3/3.45.2/sqlite-autoconf-3450200' から出ます

@@ -1,0 +1,140 @@
+/* =====================================================
+   見出し・セクション
+   ===================================================== */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 6px;
+  font-weight: 700;
+}
+.section-title .muted {
+  font-weight: 400;
+}
+
+/* =====================================================
+   ドラッグ元：男女ブロック
+   ===================================================== */
+.chip-gender-block {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin: 10px 0 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+.chip-gender-title {
+  background: #f7f8fb;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  font-weight: 700;
+}
+
+/* 各レベル帯のセクション */
+.chip-section {
+  padding: 10px 12px 8px;
+  border-bottom: 1px dashed var(--border);
+}
+.chip-section:last-child {
+  border-bottom: 0;
+}
+.chip-section-title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* =====================================================
+   レベルバッジ（A+ … D）
+   ※ I18nの表示はビュー側、ここは色だけ
+   ===================================================== */
+.lvl-badge {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  line-height: 1.6;
+}
+
+/* 強いほど濃い → 弱いほど淡い（青〜グレー） */
+.lvl-A_plus { background:#dbeafe; color:#0b3b8a; } /* A+ */
+.lvl-A      { background:#e6efff; color:#1142a0; }  /* A  */
+.lvl-A_minus{ background:#eef3ff; color:#2249a6; }  /* A- */
+.lvl-B_plus { background:#f1f5ff; color:#2d52ad; }  /* B+ */
+.lvl-B      { background:#f6f8ff; color:#3a5bb3; }  /* B  */
+.lvl-B_minus{ background:#f8f9ff; color:#4b66b8; }  /* B- */
+.lvl-C_plus { background:#fbfdff; color:#6077bf; }  /* C+ */
+.lvl-C      { background:#fcfdff; color:#7183c6; }  /* C  */
+.lvl-C_minus{ background:#fdfdff; color:#8a96cf; }  /* C- */
+.lvl-D_plus { background:#f9fafb; color:#9aa3b2; }  /* D+ */
+.lvl-D      { background:#f3f4f6; color:#9aa3b2; }  /* D  */
+
+/* =====================================================
+   チップのグリッド（折り返し・等間隔）
+   ===================================================== */
+.chip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 8px;
+}
+
+/* =====================================================
+   メンバーチップ
+   ===================================================== */
+.member-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  cursor: grab;
+  user-select: none;
+  transition: transform .05s ease, box-shadow .15s ease, background .2s ease;
+  white-space: nowrap;
+}
+.member-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,.08);
+  background: #fafcff;
+}
+.member-chip:active { cursor: grabbing; }
+
+.member-chip .chip-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+.member-chip .chip-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* =====================================================
+   ドロップターゲットの視覚フィードバック
+   ===================================================== */
+.drop-target {
+  border: 1px dashed transparent;
+  border-radius: 10px;
+  padding: 8px;
+  transition: border-color .15s ease, background .15s ease;
+}
+.drop-target.is-over {
+  border-color: var(--accent);
+  background: rgba(13,110,253,.06);
+}
+
+/* 選択セレクトのサイズ感合わせ（差し替えセレクト） */
+.select-compact {
+  min-width: 200px;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+/* ミニボタン（× / 🔁など） */
+.btn.btn-compact { padding: 4px 8px; font-size: 13px; border-radius: 6px; }

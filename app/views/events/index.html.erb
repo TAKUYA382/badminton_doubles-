@@ -1,0 +1,22 @@
+<h1>イベント一覧（公開）</h1>
+
+<%= render "shared/service_section" %>  <%# ★ サービス内容セクションを追加 %>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>日付</th>
+      <th>タイトル</th>
+      <th>コート数</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @events.each do |e| %>
+      <tr>
+        <td><%= e.date %></td>
+        <td><%= link_to e.title, event_path(e) %></td>
+        <td><%= e.court_count %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

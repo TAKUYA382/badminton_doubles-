@@ -1,0 +1,23 @@
+<h1><%= @event.title %>（<%= @event.date %>）</h1>
+<% @event.rounds.order(:index).each do |r| %>
+  <% r.matches.order(:court_number).each do |m| %>
+    <% gs = [m.pair1_member1.gender, m.pair1_member2.gender, m.pair2_member1.gender, m.pair2_member2.gender] %>
+    <% label = gs.all?("male") ? "男子" : (gs.all?("female") ? "女子" : "MIX") %>
+    <h3 style="margin-top:24px;"><%= r.index %> 回戦 <%= m.court_number %>コート <%= label %></h3>
+    <table class="table" style="margin-bottom:12px;">
+      <thead><tr><th>ペア1</th><th>ペア2</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>
+            <%= m.pair1_member1.name %>（<%= m.pair1_member1.grade_label %>・<%= m.pair1_member1.gender_label %>） +
+            <%= m.pair1_member2.name %>（<%= m.pair1_member2.grade_label %>・<%= m.pair1_member2.gender_label %>）
+          </td>
+          <td>
+            <%= m.pair2_member1.name %>（<%= m.pair2_member1.grade_label %>・<%= m.pair2_member1.gender_label %>） +
+            <%= m.pair2_member2.name %>（<%= m.pair2_member2.grade_label %>・<%= m.pair2_member2.gender_label %>）
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  <% end %>
+<% end %>

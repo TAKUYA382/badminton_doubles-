@@ -1,0 +1,422 @@
+append_cflags: checking for whether -fstack-protector-strong -D_FORTIFY_SOURCE=2 is accepted as CFLAGS... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed     -lx64-ucrt-ruby340  -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: #include <winsock2.h>
+4: #include <windows.h>
+5: int main(int argc, char **argv)
+6: {
+7:   return !!argv[argc];
+8: }
+/* end */
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong  -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Werror -c conftest.c"
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: #include <winsock2.h>
+4: #include <windows.h>
+5: int main(int argc, char **argv)
+6: {
+7:   return !!argv[argc];
+8: }
+/* end */
+
+--------------------
+
+append_ldflags: checking for whether -fstack-protector-strong -l:libssp.a is accepted as LDFLAGS... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2 conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a    -lx64-ucrt-ruby340  -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: #include <winsock2.h>
+4: #include <windows.h>
+5: int main(int argc, char **argv)
+6: {
+7:   return !!argv[argc];
+8: }
+/* end */
+
+--------------------
+
+have_library: checking for -lssp... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2 conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a     -lx64-ucrt-ruby340 -lssp  -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <winsock2.h>
+ 4: #include <windows.h>
+ 5: 
+ 6: /*top*/
+ 7: extern int t(void);
+ 8: int main(int argc, char **argv)
+ 9: {
+10:   if (argc > 1000000) {
+11:     int (* volatile tp)(void)=(int (*)(void))&t;
+12:     printf("%d", (*tp)());
+13:   }
+14: 
+15:   return !!argv[argc];
+16: }
+17: 
+18: int t(void) { ; return 0; }
+/* end */
+
+--------------------
+
+pkg_config: checking for pkg-config for openssl... -------------------- ["-IC:/Ruby34-x64/msys64/ucrt64/bin/../include ", "-LC:/Ruby34-x64/msys64/ucrt64/bin/../lib", "-lssl -lcrypto"]
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 x86_64-w64-mingw32-pkg-config --exists openssl
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 x86_64-w64-mingw32-pkg-config --libs openssl |
+=> "-LC:/Ruby34-x64/msys64/ucrt64/bin/../lib -lssl -lcrypto\n"
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2 conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib -lssl -lcrypto   -lssp  -lx64-ucrt-ruby340  -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: #include <winsock2.h>
+4: #include <windows.h>
+5: int main(int argc, char **argv)
+6: {
+7:   return !!argv[argc];
+8: }
+/* end */
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 x86_64-w64-mingw32-pkg-config --cflags-only-I openssl |
+=> "-IC:/Ruby34-x64/msys64/ucrt64/bin/../include\n"
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 x86_64-w64-mingw32-pkg-config --cflags-only-other openssl |
+=> "\n"
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 x86_64-w64-mingw32-pkg-config --libs-only-l openssl |
+=> "-lssl -lcrypto\n"
+package configuration for openssl
+incflags: -IC:/Ruby34-x64/msys64/ucrt64/bin/../include
+cflags: 
+ldflags: -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib
+libs: -lssl -lcrypto
+
+--------------------
+
+have_library: checking for BIO_read() in -llibcrypto... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -IC:/Ruby34-x64/msys64/ucrt64/bin/../include -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2  conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib    -lssp  -lssl -lcrypto -lx64-ucrt-ruby340 -llibcrypto -lssp  -lssl -lcrypto -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+conftest.c: In function 't':
+conftest.c:17:57: error: 'BIO_read' undeclared (first use in this function); did you mean '_read'?
+   17 | int t(void) { void ((*volatile p)()); p = (void ((*)()))BIO_read; return !p; }
+      |                                                         ^~~~~~~~
+      |                                                         _read
+conftest.c:17:57: note: each undeclared identifier is reported only once for each function it appears in
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <winsock2.h>
+ 4: #include <windows.h>
+ 5: 
+ 6: /*top*/
+ 7: extern int t(void);
+ 8: int main(int argc, char **argv)
+ 9: {
+10:   if (argc > 1000000) {
+11:     int (* volatile tp)(void)=(int (*)(void))&t;
+12:     printf("%d", (*tp)());
+13:   }
+14: 
+15:   return !!argv[argc];
+16: }
+17: int t(void) { void ((*volatile p)()); p = (void ((*)()))BIO_read; return !p; }
+/* end */
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -IC:/Ruby34-x64/msys64/ucrt64/bin/../include -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2  conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib    -lssp  -lssl -lcrypto -lx64-ucrt-ruby340 -llibcrypto -lssp  -lssl -lcrypto -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <winsock2.h>
+ 4: #include <windows.h>
+ 5: 
+ 6: /*top*/
+ 7: extern int t(void);
+ 8: int main(int argc, char **argv)
+ 9: {
+10:   if (argc > 1000000) {
+11:     int (* volatile tp)(void)=(int (*)(void))&t;
+12:     printf("%d", (*tp)());
+13:   }
+14: 
+15:   return !!argv[argc];
+16: }
+17: extern void BIO_read();
+18: int t(void) { BIO_read(); return 0; }
+/* end */
+
+--------------------
+
+have_library: checking for SSL_CTX_new() in -llibssl... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -IC:/Ruby34-x64/msys64/ucrt64/bin/../include -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2  conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib    -llibcrypto -lssp  -lssl -lcrypto -lx64-ucrt-ruby340 -llibssl -llibcrypto -lssp  -lssl -lcrypto -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+conftest.c: In function 't':
+conftest.c:17:57: error: 'SSL_CTX_new' undeclared (first use in this function)
+   17 | int t(void) { void ((*volatile p)()); p = (void ((*)()))SSL_CTX_new; return !p; }
+      |                                                         ^~~~~~~~~~~
+conftest.c:17:57: note: each undeclared identifier is reported only once for each function it appears in
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <winsock2.h>
+ 4: #include <windows.h>
+ 5: 
+ 6: /*top*/
+ 7: extern int t(void);
+ 8: int main(int argc, char **argv)
+ 9: {
+10:   if (argc > 1000000) {
+11:     int (* volatile tp)(void)=(int (*)(void))&t;
+12:     printf("%d", (*tp)());
+13:   }
+14: 
+15:   return !!argv[argc];
+16: }
+17: int t(void) { void ((*volatile p)()); p = (void ((*)()))SSL_CTX_new; return !p; }
+/* end */
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -IC:/Ruby34-x64/msys64/ucrt64/bin/../include -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2  conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib    -llibcrypto -lssp  -lssl -lcrypto -lx64-ucrt-ruby340 -llibssl -llibcrypto -lssp  -lssl -lcrypto -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <winsock2.h>
+ 4: #include <windows.h>
+ 5: 
+ 6: /*top*/
+ 7: extern int t(void);
+ 8: int main(int argc, char **argv)
+ 9: {
+10:   if (argc > 1000000) {
+11:     int (* volatile tp)(void)=(int (*)(void))&t;
+12:     printf("%d", (*tp)());
+13:   }
+14: 
+15:   return !!argv[argc];
+16: }
+17: extern void SSL_CTX_new();
+18: int t(void) { SSL_CTX_new(); return 0; }
+/* end */
+
+--------------------
+
+have_header: checking for openssl/bio.h... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -IC:/Ruby34-x64/msys64/ucrt64/bin/../include -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2    -c conftest.c"
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: #include <winsock2.h>
+4: #include <windows.h>
+5: #include <openssl/bio.h>
+/* end */
+
+--------------------
+
+have_func: checking for DTLS_method() in openssl/ssl.h... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -IC:/Ruby34-x64/msys64/ucrt64/bin/../include -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2  conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib    -llibssl -llibcrypto -lssp  -lssl -lcrypto -lx64-ucrt-ruby340 -llibssl -llibcrypto -lssp  -lssl -lcrypto -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <winsock2.h>
+ 4: #include <windows.h>
+ 5: #include <openssl/ssl.h>
+ 6: 
+ 7: /*top*/
+ 8: extern int t(void);
+ 9: int main(int argc, char **argv)
+10: {
+11:   if (argc > 1000000) {
+12:     int (* volatile tp)(void)=(int (*)(void))&t;
+13:     printf("%d", (*tp)());
+14:   }
+15: 
+16:   return !!argv[argc];
+17: }
+18: int t(void) { void ((*volatile p)()); p = (void ((*)()))DTLS_method; return !p; }
+/* end */
+
+--------------------
+
+have_func: checking for SSL_CTX_set_session_cache_mode(NULL, 0) in openssl/ssl.h... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -IC:/Ruby34-x64/msys64/ucrt64/bin/../include -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2  conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib    -llibssl -llibcrypto -lssp  -lssl -lcrypto -lx64-ucrt-ruby340 -llibssl -llibcrypto -lssp  -lssl -lcrypto -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <winsock2.h>
+ 4: #include <windows.h>
+ 5: #include <openssl/ssl.h>
+ 6: 
+ 7: /*top*/
+ 8: extern int t(void);
+ 9: int main(int argc, char **argv)
+10: {
+11:   if (argc > 1000000) {
+12:     int (* volatile tp)(void)=(int (*)(void))&t;
+13:     printf("%d", (*tp)());
+14:   }
+15: 
+16:   return !!argv[argc];
+17: }
+18: 
+19: int t(void) { SSL_CTX_set_session_cache_mode(NULL, 0); return 0; }
+/* end */
+
+--------------------
+
+have_func: checking for TLS_server_method() in openssl/ssl.h... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -IC:/Ruby34-x64/msys64/ucrt64/bin/../include -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2  conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib    -llibssl -llibcrypto -lssp  -lssl -lcrypto -lx64-ucrt-ruby340 -llibssl -llibcrypto -lssp  -lssl -lcrypto -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <winsock2.h>
+ 4: #include <windows.h>
+ 5: #include <openssl/ssl.h>
+ 6: 
+ 7: /*top*/
+ 8: extern int t(void);
+ 9: int main(int argc, char **argv)
+10: {
+11:   if (argc > 1000000) {
+12:     int (* volatile tp)(void)=(int (*)(void))&t;
+13:     printf("%d", (*tp)());
+14:   }
+15: 
+16:   return !!argv[argc];
+17: }
+18: int t(void) { void ((*volatile p)()); p = (void ((*)()))TLS_server_method; return !p; }
+/* end */
+
+--------------------
+
+have_func: checking for SSL_CTX_set_min_proto_version(NULL, 0) in openssl/ssl.h... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -IC:/Ruby34-x64/msys64/ucrt64/bin/../include -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2  conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib    -llibssl -llibcrypto -lssp  -lssl -lcrypto -lx64-ucrt-ruby340 -llibssl -llibcrypto -lssp  -lssl -lcrypto -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <winsock2.h>
+ 4: #include <windows.h>
+ 5: #include <openssl/ssl.h>
+ 6: 
+ 7: /*top*/
+ 8: extern int t(void);
+ 9: int main(int argc, char **argv)
+10: {
+11:   if (argc > 1000000) {
+12:     int (* volatile tp)(void)=(int (*)(void))&t;
+13:     printf("%d", (*tp)());
+14:   }
+15: 
+16:   return !!argv[argc];
+17: }
+18: 
+19: int t(void) { SSL_CTX_set_min_proto_version(NULL, 0); return 0; }
+/* end */
+
+--------------------
+
+have_func: checking for SSL_CTX_set_dh_auto(NULL, 0) in openssl/ssl.h... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -IC:/Ruby34-x64/msys64/ucrt64/bin/../include -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2  conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib    -llibssl -llibcrypto -lssp  -lssl -lcrypto -lx64-ucrt-ruby340 -llibssl -llibcrypto -lssp  -lssl -lcrypto -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <winsock2.h>
+ 4: #include <windows.h>
+ 5: #include <openssl/ssl.h>
+ 6: 
+ 7: /*top*/
+ 8: extern int t(void);
+ 9: int main(int argc, char **argv)
+10: {
+11:   if (argc > 1000000) {
+12:     int (* volatile tp)(void)=(int (*)(void))&t;
+13:     printf("%d", (*tp)());
+14:   }
+15: 
+16:   return !!argv[argc];
+17: }
+18: 
+19: int t(void) { SSL_CTX_set_dh_auto(NULL, 0); return 0; }
+/* end */
+
+--------------------
+
+have_func: checking for SSL_CTX_set_ciphersuites(NULL, "") in openssl/ssl.h... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -IC:/Ruby34-x64/msys64/ucrt64/bin/../include -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2  conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib    -llibssl -llibcrypto -lssp  -lssl -lcrypto -lx64-ucrt-ruby340 -llibssl -llibcrypto -lssp  -lssl -lcrypto -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <winsock2.h>
+ 4: #include <windows.h>
+ 5: #include <openssl/ssl.h>
+ 6: 
+ 7: /*top*/
+ 8: extern int t(void);
+ 9: int main(int argc, char **argv)
+10: {
+11:   if (argc > 1000000) {
+12:     int (* volatile tp)(void)=(int (*)(void))&t;
+13:     printf("%d", (*tp)());
+14:   }
+15: 
+16:   return !!argv[argc];
+17: }
+18: 
+19: int t(void) { char s1[1024]; SSL_CTX_set_ciphersuites(NULL, s1); return 0; }
+/* end */
+
+--------------------
+
+have_func: checking for SSL_get1_peer_certificate() in openssl/ssl.h... -------------------- yes
+
+PATH=".;C:/Ruby34-x64/lib;C:\Ruby34-x64\bin;C:\Ruby34-x64\msys64\ucrt64\bin;C:\Ruby34-x64\msys64\usr\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;c:\Program Files (x86)\Symantec\VIP Access Client\;C:\Program Files\Git\cmd;C:\Ruby34-x64\bin;C:\Users\dream\AppData\Local\Microsoft\WindowsApps;C:\Users\dream\AppData\Local\Programs\Microsoft VS Code\bin" ASAN_OPTIONS=detect_leaks=0 "gcc -o conftest.exe -IC:/Ruby34-x64/include/ruby-3.4.0/x64-mingw-ucrt -IC:/Ruby34-x64/include/ruby-3.4.0/ruby/backward -IC:/Ruby34-x64/include/ruby-3.4.0 -I. -IC:/Ruby34-x64/msys64/ucrt64/bin/../include -D_WIN32_WINNT=0x0600 -D__MINGW_USE_VC2005_COMPAT -D_FILE_OFFSET_BITS=64  -O3 -fstack-protector-strong -fstack-protector-strong -D_FORTIFY_SOURCE=2  conftest.c -L. -LC:/Ruby34-x64/lib -L. -pipe -s -fstack-protector-strong -lpthread -Wl,--no-as-needed -fstack-protector-strong -l:libssp.a -LC:/Ruby34-x64/msys64/ucrt64/bin/../lib    -llibssl -llibcrypto -lssp  -lssl -lcrypto -lx64-ucrt-ruby340 -llibssl -llibcrypto -lssp  -lssl -lcrypto -lshell32 -lws2_32 -liphlpapi -limagehlp -lshlwapi -lbcrypt  "
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <winsock2.h>
+ 4: #include <windows.h>
+ 5: #include <openssl/ssl.h>
+ 6: 
+ 7: /*top*/
+ 8: extern int t(void);
+ 9: int main(int argc, char **argv)
+10: {
+11:   if (argc > 1000000) {
+12:     int (* volatile tp)(void)=(int (*)(void))&t;
+13:     printf("%d", (*tp)());
+14:   }
+15: 
+16:   return !!argv[argc];
+17: }
+18: int t(void) { void ((*volatile p)()); p = (void ((*)()))SSL_get1_peer_certificate; return !p; }
+/* end */
+
+--------------------
+

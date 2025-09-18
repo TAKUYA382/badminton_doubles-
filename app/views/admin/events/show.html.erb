@@ -1,0 +1,235 @@
+<div class="page">
+  <!-- ===== ヘッダー（イベントタイトルとステータス） ===== -->
+  <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+    <div>
+      <h1 class="page-title"><%= @event.title.presence || "（タイトル未設定）" %></h1>
+      <p class="page-sub">日付：<%= @event.date %> / コート数：<%= @event.court_count %></p>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <% if @event.status_draft? %>
+        <%= button_to "公開する", publish_admin_event_path(@event), method: :patch, class: "btn btn-primary" %>
+      <% else %>
+        <span style="color:green;margin-right:8px;">このイベントは公開中です ✅</span>
+        <%= button_to "非公開に戻す", unpublish_admin_event_path(@event), method: :patch,
+              data: { turbo_confirm: "本当に非公開にしますか？" }, class: "btn btn-outline" %>
+      <% end %>
+      <%= link_to "イベントを編集", edit_admin_event_path(@event), class: "btn btn-outline" %>
+      <%= button_to "イベントを削除", admin_event_path(@event),
+            method: :delete,
+            data: { turbo_confirm: "削除すると元に戻せません。削除しますか？" },
+            class: "btn btn-danger" %>
+    </div>
+  </div>
+
+  <!-- ===== 自動編成フォーム + 参加者関連リンク ===== -->
+  <div class="card" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
+    <%= form_with url: auto_schedule_admin_event_path(@event), method: :post, local: true do %>
+      <label>何回戦（男女別）</label>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <%= number_field_tag :rounds, params[:rounds] || 2, min: 1, style: "width:80px;" %>
+        <%= hidden_field_tag :mode, "split" %>
+        <%= submit_tag "男女別で作成", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+
+    <%= form_with url: auto_schedule_admin_event_path(@event), method: :post, local: true do %>
+      <label>何回戦（MIX）</label>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <%= number_field_tag :rounds, params[:rounds] || 2, min: 1, style: "width:80px;" %>
+        <%= hidden_field_tag :mode, "mixed" %>
+        <%= submit_tag "MIXで作成", class: "btn btn-outline" %>
+      </div>
+    <% end %>
+
+    <%= link_to "参加者管理", admin_event_attendances_path(@event), class: "btn btn-outline", style: "margin-left:auto;" %>
+    <%= link_to "参加者をペースト入力", paste_participants_admin_event_path(@event), class: "btn btn-outline" %>
+  </div>
+
+  <% if flash[:alert].present? %>
+    <div class="card" style="border:1px solid #fca5a5;background:#fee2e2;color:#991b1b;margin-bottom:12px;">
+      <%= flash[:alert] %>
+    </div>
+  <% end %>
+  <% if flash[:notice].present? %>
+    <div class="card" style="border:1px solid #86efac;background:#dcfce7;color:#14532d;margin-bottom:12px;">
+      <%= flash[:notice] %>
+    </div>
+  <% end %>
+
+  <div class="layout-2col">
+    <!-- 左：参加回数 + ドラッグ元 -->
+    <aside class="col-left">
+      <h2>参加回数（このイベント）</h2>
+      <div class="table-wrap">
+        <table class="table" style="min-width:320px;">
+          <thead>
+            <tr>
+              <th>名前</th><th>学年</th><th>性別</th><th>レベル</th><th>回数</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @participations.each do |mem, cnt| %>
+              <tr>
+                <td><%= mem.name %></td>
+                <td><%= mem.grade_label %></td>
+                <td><%= mem.gender_label %></td>
+                <td><%= mem.skill_label %></td>
+                <td><%= cnt %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted" style="margin-top:6px;">※ 回数は対戦作成後に更新されます。</p>
+
+      <!-- ▼ ドラッグ元：男女×レベル帯で表示 -->
+      <div class="card" style="margin-top:12px;">
+        <div class="card-header">メンバー（ドラッグで差し替え）</div>
+
+        <% level_order = %w[A_plus A A_minus B_plus B B_minus C_plus C C_minus D_plus D] %>
+        <% genders = { "男子" => :male, "女子" => :female } %>
+
+        <% genders.each do |gender_label, gender_sym| %>
+          <% members_by_gender = (@drag_members || []).select { |m| m.gender.to_sym == gender_sym } %>
+          <% next if members_by_gender.blank? %>
+
+          <div class="chip-gender-block">
+            <div class="chip-gender-title"><%= gender_label %></div>
+
+            <% level_order.each do |lv| %>
+              <% group = members_by_gender.select { |m| m.skill_level == lv } %>
+              <% next if group.blank? %>
+
+              <div class="chip-section">
+                <div class="chip-section-title">
+                  <span class="lvl-badge lvl-<%= lv %>"><%= I18n.t("enums.member.skill_level.#{lv}") %></span>
+                  <span class="muted" style="margin-left:6px;">(<%= group.size %>人)</span>
+                </div>
+
+                <div class="chip-grid">
+                  <% group.sort_by! { |m| [m.name_kana.presence || m.name, m.id] } %>
+                  <% group.each do |mem| %>
+                    <span class="member-chip"
+                          draggable="true"
+                          data-member-id="<%= mem.id %>"
+                          title="<%= [mem.name_kana.presence, mem.grade_label, mem.gender_label].compact.join(' / ') %>">
+                      <span class="chip-name"><%= mem.name %></span>
+                      <span class="chip-sub"><%= mem.grade_label %></span>
+                    </span>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </aside>
+
+    <!-- 右：対戦表（編集可） -->
+    <section class="col-right">
+      <h2>対戦表</h2>
+      <% @event.rounds.order(:index).each do |r| %>
+        <% r.matches.order(:court_number).each do |m| %>
+          <% gs = [m.pair1_member1&.gender, m.pair1_member2&.gender, m.pair2_member1&.gender, m.pair2_member2&.gender].compact %>
+          <% label = gs.present? && gs.all?("male") ? "男子" : (gs.present? && gs.all?("female") ? "女子" : "MIX") %>
+
+          <div class="card" style="margin-bottom:12px;">
+            <h3 style="margin-bottom:6px;">
+              <%= r.index %> 回戦　<%= m.court_number %>コート　
+              <span class="muted"><%= label %></span>
+            </h3>
+
+            <table class="table" style="min-width:780px;">
+              <thead>
+                <tr>
+                  <th style="width:50%;">ペア1（編集可）</th>
+                  <th style="width:50%;">ペア2（編集可）</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <!-- ペア1 -->
+                  <td>
+                    <% ["pair1_member1", "pair1_member2"].each do |slot_key| %>
+                      <% mem = m.send(slot_key) %>
+                      <div class="slot-editor drop-target"
+                           data-drop-slot="<%= slot_key %>"
+                           data-match-id="<%= m.id %>"
+                           data-update-url="<%= update_slot_admin_event_path(@event) %>">
+                        <div class="info">
+                          <div><strong><%= mem&.name || "（未設定）" %></strong>
+                            <% if mem %>（<%= mem.grade_label %>・<%= mem.gender_label %>・<%= mem.skill_label %>）<% end %>
+                          </div>
+                        </div>
+
+                        <!-- クリア -->
+                        <%= form_with url: update_slot_admin_event_path(@event), method: :patch, local: true do %>
+                          <%= hidden_field_tag :match_id, m.id %>
+                          <%= hidden_field_tag :slot_key, slot_key %>
+                          <%= hidden_field_tag :clear, "1" %>
+                          <button class="btn btn-outline btn-compact">×</button>
+                        <% end %>
+
+                        <!-- 差し替えセレクト -->
+                        <%= form_with url: update_slot_admin_event_path(@event), method: :patch, local: true do %>
+                          <%= hidden_field_tag :match_id, m.id %>
+                          <%= hidden_field_tag :slot_key, slot_key %>
+                          <%= select_tag :member_id,
+                                options_from_collection_for_select(
+                                  @drag_members, :id,
+                                  ->(mm){ "#{mm.name}（#{mm.grade_label}・#{mm.gender_label}・#{mm.skill_label}）" }
+                                ),
+                                prompt: "選択して差し替え", class: "select-compact" %>
+                          <button class="btn btn-primary btn-compact">🔁</button>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </td>
+
+                  <!-- ペア2 -->
+                  <td>
+                    <% ["pair2_member1", "pair2_member2"].each do |slot_key| %>
+                      <% mem = m.send(slot_key) %>
+                      <div class="slot-editor drop-target"
+                           data-drop-slot="<%= slot_key %>"
+                           data-match-id="<%= m.id %>"
+                           data-update-url="<%= update_slot_admin_event_path(@event) %>">
+                        <div class="info">
+                          <div><strong><%= mem&.name || "（未設定）" %></strong>
+                            <% if mem %>（<%= mem.grade_label %>・<%= mem.gender_label %>・<%= mem.skill_label %>）<% end %>
+                          </div>
+                        </div>
+
+                        <!-- クリア -->
+                        <%= form_with url: update_slot_admin_event_path(@event), method: :patch, local: true do %>
+                          <%= hidden_field_tag :match_id, m.id %>
+                          <%= hidden_field_tag :slot_key, slot_key %>
+                          <%= hidden_field_tag :clear, "1" %>
+                          <button class="btn btn-outline btn-compact">×</button>
+                        <% end %>
+
+                        <!-- 差し替えセレクト -->
+                        <%= form_with url: update_slot_admin_event_path(@event), method: :patch, local: true do %>
+                          <%= hidden_field_tag :match_id, m.id %>
+                          <%= hidden_field_tag :slot_key, slot_key %>
+                          <%= select_tag :member_id,
+                                options_from_collection_for_select(
+                                  @drag_members, :id,
+                                  ->(mm){ "#{mm.name}（#{mm.grade_label}・#{mm.gender_label}・#{mm.skill_label}）" }
+                                ),
+                                prompt: "選択して差し替え", class: "select-compact" %>
+                          <button class="btn btn-primary btn-compact">🔁</button>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
+      <% end %>
+    </section>
+  </div>
+</div>

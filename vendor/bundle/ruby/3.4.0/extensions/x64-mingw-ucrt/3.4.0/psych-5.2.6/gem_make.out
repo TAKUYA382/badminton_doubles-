@@ -1,0 +1,32 @@
+current directory: C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/psych-5.2.6/ext/psych
+C:/Ruby34-x64/bin/ruby.exe extconf.rb
+checking for pkg-config for yaml-0.1... ["-IC:/Ruby34-x64/msys64/ucrt64/bin/../include ", "-LC:/Ruby34-x64/msys64/ucrt64/bin/../lib", "-lyaml"]
+checking for yaml.h... yes
+checking for yaml_get_version() in -lyaml... yes
+creating Makefile
+
+current directory: C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/psych-5.2.6/ext/psych
+make DESTDIR\= sitearchdir\=./.gem.20250913-1964-gh9pn0 sitelibdir\=./.gem.20250913-1964-gh9pn0 clean
+cd libyaml && make clean
+/bin/sh: 1 行: cd: libyaml: No such file or directory
+make: [Makefile:291: clean-so] エラー 1 (無視されました)
+
+current directory: C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/psych-5.2.6/ext/psych
+make DESTDIR\= sitearchdir\=./.gem.20250913-1964-gh9pn0 sitelibdir\=./.gem.20250913-1964-gh9pn0
+generating psych-x64-mingw-ucrt.def
+compiling psych.c
+compiling psych_emitter.c
+compiling psych_parser.c
+compiling psych_to_ruby.c
+compiling psych_yaml_tree.c
+linking shared-object psych.so
+
+current directory: C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/psych-5.2.6/ext/psych
+make DESTDIR\= sitearchdir\=./.gem.20250913-1964-gh9pn0 sitelibdir\=./.gem.20250913-1964-gh9pn0 install
+/usr/bin/install -c -m 0755 psych.so ./.gem.20250913-1964-gh9pn0
+
+current directory: C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/psych-5.2.6/ext/psych
+make DESTDIR\= sitearchdir\=./.gem.20250913-1964-gh9pn0 sitelibdir\=./.gem.20250913-1964-gh9pn0 clean
+cd libyaml && make clean
+/bin/sh: 1 行: cd: libyaml: No such file or directory
+make: [Makefile:291: clean-so] エラー 1 (無視されました)

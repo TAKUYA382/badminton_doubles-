@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  round: one
+  court_number: 1
+  pair1_member1: one
+  pair1_member2: one
+  pair2_member1: one
+  pair2_member2: one
+
+two:
+  round: two
+  court_number: 1
+  pair1_member1: two
+  pair1_member2: two
+  pair2_member1: two
+  pair2_member2: two

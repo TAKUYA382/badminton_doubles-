@@ -1,0 +1,20 @@
+<!-- app/views/admin/event_participants_imports/paste_form.html.erb -->
+<div class="card">
+  <div class="card-header">参加者をペーストで追加</div>
+  <div class="card-body">
+    <p class="muted">1行に1名。後ろに「参加/未定/欠席」を付けてもOK（省略時は参加）。</p>
+    <pre class="muted" style="background:#f8fafc;padding:8px;border:1px solid #e5e7eb;border-radius:6px">
+山田太郎,参加
+佐藤はな 欠席
+鈴木一郎   （= 参加扱い）
+    </pre>
+
+    <%= form_with url: paste_participants_preview_admin_event_path(@event), method: :post, local: true do %>
+      <%= text_area_tag :bulk_text, "", rows: 12, style: "width:100%;font-family:monospace" %>
+      <div style="margin-top:8px">
+        <%= submit_tag "プレビュー", class: "btn btn-primary" %>
+        <%= link_to "戻る", admin_event_path(@event), class: "btn btn-outline" %>
+      </div>
+    <% end %>
+  </div>
+</div>

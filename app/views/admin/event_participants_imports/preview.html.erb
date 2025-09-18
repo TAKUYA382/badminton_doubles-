@@ -1,0 +1,46 @@
+<!-- app/views/admin/event_participants_imports/preview.html.erb -->
+<div class="card">
+  <div class="card-header">取り込みプレビュー</div>
+  <div class="card-body">
+    <table class="table">
+      <thead>
+        <tr><th>入力</th><th>判定</th><th>候補/決定</th><th>ステータス</th></tr>
+      </thead>
+      <tbody>
+        <% @rows.each do |r| %>
+          <tr>
+            <td><%= r[:raw] %></td>
+            <td>
+              <%=
+                case r[:match]
+                when :unique then "一致"
+                when :none then "未一致"
+                else "候補複数"
+                end
+              %>
+            </td>
+            <td>
+              <% if r[:match] == :unique %>
+                <%= r[:member].name %>
+              <% elsif r[:match] == :none %>
+                <span class="muted">該当なし</span>
+              <% else %>
+                <%= r[:candidates].map(&:name).join(" / ") %>
+              <% end %>
+            </td>
+            <td><%= r[:status] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= form_with url: paste_participants_commit_admin_event_path(@event), method: :post, local: true do %>
+      <%= hidden_field_tag :bulk_text, params[:bulk_text] %>
+      <p class="muted">※「一致」の行だけ登録します。未一致/候補複数はスキップ。</p>
+      <div style="margin-top:8px">
+        <%= submit_tag "確定して登録", class: "btn btn-primary" %>
+        <%= link_to "やり直す", paste_participants_admin_event_path(@event), class: "btn btn-outline" %>
+      </div>
+    <% end %>
+  </div>
+</div>

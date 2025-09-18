@@ -1,0 +1,66 @@
+<!-- app/views/admin/attendances/index.html.erb -->
+<!-- 出欠管理（イベント単位） -->
+<h1>出欠管理：<%= @event.title %></h1>
+
+<p>
+  <%= link_to 'イベント一覧へ戻る', admin_events_path, class: "btn btn-outline" %>
+</p>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>メンバー</th>
+      <th>出欠</th>
+      <th>メモ</th>
+      <th>操作</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @members.each do |member| %>
+      <%# 既に出欠があれば@attendance_mapから取得、無ければ新規作成（保存前） %>
+      <% attendance = @attendance_map[member.id] || @event.attendances.build(member: member) %>
+
+      <tr>
+        <td><%= member.name %></td>
+
+        <td>
+          <%# 各メンバーごとに個別のform %>
+          <%= form_with url: (attendance.persisted? ? admin_event_attendance_path(@event, attendance)
+                                                    : admin_event_attendances_path(@event)),
+                        method: (attendance.persisted? ? :patch : :post),
+                        local: true do |f| %>
+            <%= f.hidden_field :member_id, value: member.id %>
+
+            <%# 出欠セレクト：未定 / 参加 / 欠席 %>
+            <%= f.select :status,
+                  Attendance.statuses.keys.map { |k|
+                    [I18n.t("enums.attendance.status.#{k}", default: k.humanize), k]
+                  },
+                  { selected: (attendance.status || 'undecided') },
+                  class: "form-select" %>
+        </td>
+
+        <td>
+            <%# メモ入力欄 %>
+            <%= f.text_field :note, value: attendance.note, placeholder: '連絡事項など', class: "form-control" %>
+        </td>
+
+        <td>
+            <%# 保存または更新ボタン %>
+            <%= f.submit (attendance.persisted? ? '更新' : '保存'), class: "btn btn-primary btn-sm" %>
+
+            <%# 既存レコードなら削除リンクも表示 %>
+            <% if attendance.persisted? %>
+              <%= link_to '削除',
+                    admin_event_attendance_path(@event, attendance, member_id: member.id),
+                    method: :delete,
+                    data: { confirm: '削除しますか？' },
+                    class: "btn btn-danger btn-sm" %>
+            <% end %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

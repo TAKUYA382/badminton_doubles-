@@ -1,0 +1,15 @@
+# body内を書き換え
+<body>
+  <header class="site-header">
+    <span class="brand">公開サイト</span>
+    <nav>
+      <%= link_to "公開一覧", events_path %>
+      <%= link_to "管理者ログイン", new_admin_session_path %>
+    </nav>
+    <div class="right"></div>
+  </header>
+
+  <main class="page">
+    <%= yield %>
+  </main>
+</body>

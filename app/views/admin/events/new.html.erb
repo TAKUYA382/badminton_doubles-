@@ -1,0 +1,42 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">イベント新規</h1>
+    <p class="page-sub">必要項目を入力して「作成する」を押してください。</p>
+  </div>
+
+  <%= form_with model: [:admin, @event], local: true do |f| %>
+    <%# 入力エラーがあれば上部にまとめて表示 %>
+    <% if @event.errors.any? %>
+      <div class="card" style="border:1px solid #fca5a5; background:#fee2e2; color:#991b1b; margin-bottom:12px; padding:8px;">
+        <strong>入力エラーがあります（<%= @event.errors.count %>件）</strong>
+        <ul style="margin-top:6px;">
+          <% @event.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="card" style="padding:16px; display:flex; flex-wrap:wrap; gap:16px;">
+      <div class="field">
+        <%= f.label :title, 'タイトル' %><br>
+        <%= f.text_field :title, placeholder: "例）学内練習会", style: "width:200px;" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :date, '日付' %><br>
+        <%= f.date_field :date, style: "width:150px;" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :court_count, 'コート数' %><br>
+        <%= f.number_field :court_count, min: 1, step: 1, value: (@event.court_count || 2), style: "width:80px;" %>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <%= f.submit "作成する", class: "btn btn-primary" %>
+      <%= link_to "キャンセル", admin_events_path, class: "btn btn-outline", style: "margin-left:8px;" %>
+    </div>
+  <% end %>
+</div>

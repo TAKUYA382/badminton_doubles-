@@ -1,0 +1,91 @@
+<%= form_with model: [:admin, @member], local: true do |f| %>
+  <!-- 名前 -->
+  <div class="form-group">
+    <%= f.label :name, '名前', class: "form-label" %>
+    <%= f.text_field :name,
+          class: "form-control",
+          placeholder: "例）山田太郎",
+          id: "member_name" %>
+  </div>
+
+  <!-- 名前（よみ） -->
+  <div class="form-group">
+    <%= f.label :name_kana, '名前（よみ）', class: "form-label" %>
+    <%= f.text_field :name_kana,
+          class: "form-control",
+          placeholder: "例）やまだ たろう",
+          id: "member_name_kana" %>
+    <p class="muted" style="margin-top:4px;">※ ひらがな推奨（全角スペース可）</p>
+  </div>
+
+  <!-- 学年 -->
+  <div class="form-group">
+    <%= f.label :grade, '学年', class: "form-label" %>
+    <%= f.select :grade,
+          options_for_select(Member::GRADE_OPTIONS, @member.grade),
+          { include_blank: '選択してください' },
+          class: "form-control" %>
+  </div>
+
+  <!-- 性別 -->
+  <div class="form-group">
+    <%= f.label :gender, '性別', class: "form-label" %>
+    <%= f.select :gender,
+          Member.genders.keys.map { |k| [I18n.t("enums.member.gender.#{k}"), k] },
+          { include_blank: '選択してください' },
+          class: "form-control" %>
+  </div>
+
+  <!-- レベル（★ A+〜D に更新） -->
+  <div class="form-group">
+    <%= f.label :skill_level, 'レベル', class: "form-label" %>
+    <% level_order = %w[A_plus A A_minus B_plus B B_minus C_plus C C_minus D_plus D] %>
+    <%= f.select :skill_level,
+          level_order.map { |k|
+            # i18n が無い場合のフォールバック（A_plus -> A+ / A_minus -> A-）
+            fallback = k.gsub('_plus', '+').gsub('_minus', '-').gsub('_', ' ')
+            [I18n.t("enums.member.skill_level.#{k}", default: fallback), k]
+          },
+          { include_blank: '選択してください' },
+          class: "form-control" %>
+  </div>
+
+  <!-- 送信 -->
+  <div class="form-actions" style="margin-top:12px;">
+    <%= f.submit (defined?(submit_label) ? submit_label : '登録'), class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<!-- 簡易オートかな（name_kana 未編集時のみ反映） -->
+<script>
+(() => {
+  const nameEl = document.getElementById('member_name');
+  const kanaEl = document.getElementById('member_name_kana');
+  if (!nameEl || !kanaEl) return;
+
+  let kanaTouched = false;
+  ['input','change','keydown','paste'].forEach(ev =>
+    kanaEl.addEventListener(ev, () => { kanaTouched = true; })
+  );
+
+  const toHiragana = (s) => {
+    if (!s) return '';
+    s = s.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+    s = s.replace(/[ァ-ン]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+    s = s.replace(/[‐\-ｰ]/g, 'ー');
+    return s;
+  };
+  const looksKana = (s) => /[ぁ-んァ-ン]/.test(s) && !/[一-龠々]/.test(s);
+
+  const updateKana = () => {
+    if (kanaTouched) return;
+    const val = nameEl.value || '';
+    if (!val) return;
+    if (looksKana(val)) kanaEl.value = toHiragana(val);
+  };
+
+  nameEl.addEventListener('input', updateKana);
+  nameEl.addEventListener('change', updateKana);
+  if (!kanaEl.value) updateKana();
+})();
+</script>

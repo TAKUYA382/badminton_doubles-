@@ -1,0 +1,1 @@
+["--host=x86_64-w64-mingw32", "--enable-static", "--disable-shared", "--enable-shared=no", "--enable-static=yes", "--enable-fts5", "CC=gcc", "CFLAGS=-fPIC -O2 -fvisibility=hidden -DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1", "--prefix=C:/Users/dream/desktop/takuya2/vendor/bundle/ruby/3.4.0/gems/sqlite3-1.7.3/ports/x86_64-w64-mingw32/sqlite3/3.45.2"]

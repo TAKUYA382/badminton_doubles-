@@ -1,0 +1,34 @@
+ja:
+  activerecord:
+    errors:
+      messages:
+        record_invalid: "バリデーションに失敗しました: %{errors}"
+
+  enums:
+    member:
+      gender:
+        male: 男子
+        female: 女子
+      skill_level:
+        A_plus: "A+"
+        A: "A"
+        A_minus: "A-"
+        B_plus: "B+"
+        B: "B"
+        B_minus: "B-"
+        C_plus: "C+"
+        C: "C"
+        C_minus: "C-"
+        D_plus: "D+"
+        D: "D"
+
+    member_relation:
+      kind:
+        avoid_pair: "ペアNG"
+        avoid_opponent: "対戦NG"
+
+    attendance:
+      status:
+        undecided: "未定"
+        attending: "参加"
+        absent: "不参加"

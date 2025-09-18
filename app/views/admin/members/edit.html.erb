@@ -1,0 +1,118 @@
+　<div class="page">
+  <!-- ヘッダー -->
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h1 class="page-title">メンバー編集</h1>
+      <p class="page-sub" style="margin-top:4px;"><%= @member.name %></p>
+    </div>
+    <div>
+      <%= link_to "一覧に戻る", admin_members_path, class: "btn btn-outline" %>
+    </div>
+  </div>
+
+  <!-- 基本情報フォーム（参加状況は出さない／_form を共通利用） -->
+  <div class="card" style="max-width:720px;margin-bottom:16px;">
+    <%= render "form", member: @member, submit_label: "更新する" %>
+  </div>
+
+  <!-- 対人関係（ペアNG・対戦NG） -->
+  <div class="card relation-section">
+    <h2 class="section-title" style="margin-top:0;">対人関係（ペアNG・対戦NGの設定）</h2>
+    <p class="muted" style="margin-top:0;">
+      相手メンバーに対して「ペアNG／対戦NG」を設定できます。相手と種別を選んで「追加」を押してください。
+    </p>
+
+    <!-- 追加フォーム -->
+    <%= form_with url: admin_member_relations_path, method: :post, local: true do %>
+      <%= hidden_field_tag "member_relation[member_id]", @member.id %>
+
+      <div class="form-grid" style="display:grid;grid-template-columns: 160px 1fr;gap:12px;max-width:720px;">
+        <label>相手</label>
+        <div>
+          <%= select_tag "member_relation[other_member_id]",
+                options_from_collection_for_select(
+                  Member.where.not(id: @member.id).order(:name),
+                  :id, :name
+                ),
+                prompt: "メンバーを選択", class: "select" %>
+        </div>
+
+        <label>種別（複数可）</label>
+        <div style="display:flex;gap:16px;align-items:center;">
+          <label style="display:inline-flex;gap:6px;align-items:center;">
+            <%= check_box_tag "member_relation[kinds][]", "avoid_pair", false %>
+            ペアNG
+          </label>
+          <label style="display:inline-flex;gap:6px;align-items:center;">
+            <%= check_box_tag "member_relation[kinds][]", "avoid_opponent", false %>
+            対戦NG
+          </label>
+        </div>
+
+        <div></div>
+        <div>
+          <%= submit_tag "追加", class: "btn btn-primary" %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- 登録済みリスト -->
+    <h3 class="section-title" style="margin-top:20px;">登録済みの関係</h3>
+
+    <% relations = MemberRelation
+                    .where("member_id = :id OR other_member_id = :id", id: @member.id)
+                    .includes(:member, :other_member) %>
+    <% grouped = relations.group_by { |rel| rel.member_id == @member.id ? rel.other_member_id : rel.member_id } %>
+
+    <div class="table-wrap" style="margin-top:8px;">
+      <table class="table" style="min-width:620px;">
+        <thead>
+          <tr>
+            <th style="width:40%;">相手</th>
+            <th style="width:40%;">種別</th>
+            <th style="width:20%;">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if grouped.blank? %>
+            <tr>
+              <td colspan="3" class="muted">登録はありません。</td>
+            </tr>
+          <% else %>
+            <% grouped.sort_by { |_other_id, rels| (rels.first.member_id == @member.id ? rels.first.other_member&.name : rels.first.member&.name).to_s }.each do |other_id, rels| %>
+              <% other = rels.first.member_id == @member.id ? rels.first.other_member : rels.first.member %>
+              <% kinds = rels.map(&:kind).uniq %>
+              <tr>
+                <td><%= other&.name || "（削除済み）" %></td>
+                <td>
+                  <% kinds.each do |k| %>
+                    <% if k == "avoid_pair" %>
+                      <span class="badge badge-gray" style="margin-right:6px;">ペアNG</span>
+                    <% elsif k == "avoid_opponent" %>
+                      <span class="badge badge-green" style="margin-right:6px;">対戦NG</span>
+                    <% end %>
+                  <% end %>
+                </td>
+                <td>
+                  <!-- 種別ごとに削除ボタン -->
+                  <% kinds.each do |k| %>
+                    <% target_rel = rels.find { |r| r.kind == k } %>
+                    <% label = (k == "avoid_pair" ? "ペアNG" : "対戦NG") %>
+                    <% if target_rel %>
+                      <%= button_to "削除（#{label}）",
+                            admin_member_relation_path(target_rel),
+                            method: :delete,
+                            class: "btn btn-outline btn-compact",
+                            form: { data: { turbo_confirm: "#{other&.name} への「#{label}」を削除します。よろしいですか？" },
+                                    style: "display:inline-block; margin-right:6px;" } %>
+                    <% end %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Admin - Badminton</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="csrf-token" content="<%= form_authenticity_token %>">
+
+  <!-- CSP（インラインCSS/JS許可） -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 style-src 'self' 'unsafe-inline';
+                 script-src 'self' 'unsafe-inline';
+                 img-src 'self' data:;">
+
+  <style>
+  :root{--bg:#fff;--fg:#111;--muted:#6b7280;--accent:#6b46c1;--border:#cbd5e1;--header-bg:#222;--header-fg:#fff}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;line-height:1.6}
+  a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+  .container{max-width:1080px;margin:0 auto;padding:0 16px}
+  .site-header{background:var(--header-bg);color:var(--header-fg);padding:10px 14px;display:flex;gap:16px;align-items:center}
+  .site-header .brand{font-weight:700;background:#ffffff1a;padding:4px 8px;border-radius:6px}
+  .site-header nav a{color:var(--header-fg);margin-right:12px}
+  .site-header .right{margin-left:auto}
+  .page{padding:20px}.page.container{padding:20px 16px}
+  h1{font-size:34px;margin:8px 0 16px}h2{font-size:22px;margin:24px 0 10px}h3{font-size:18px;margin:16px 0 8px}
+  .muted{color:var(--muted);font-size:14px}
+  .card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid transparent;font-weight:600;cursor:pointer}
+  .btn-primary{background:var(--accent);color:#fff}.btn-outline{background:#fff;color:#111;border-color:#cbd5e1}.btn-outline:hover{background:#f8fafc}.btn-danger{background:#ef4444;color:#fff}
+  .table{border-collapse:collapse;min-width:640px;width:100%}
+  .table th,.table td{border:1px solid var(--border);padding:8px 10px;text-align:left;white-space:nowrap}
+  .table thead th{background:#f8fafc;font-weight:700}.table tbody tr:nth-child(even){background:#fafafa}.table tbody tr:hover{background:#f1f5f9;transition:.15s}
+  .layout-2col{display:flex;gap:16px;align-items:flex-start}
+  .layout-2col .col-left{flex:0 0 360px;max-width:420px;position:sticky;top:64px;max-height:calc(100vh - 80px);overflow:auto;border:1px solid var(--border);padding:8px;background:#fff;border-radius:6px}
+  .layout-2col .col-right{flex:1 1 auto;min-width:0}
+  @media(max-width:900px){.layout-2col{flex-direction:column}.layout-2col .col-left{position:static;max-height:none;width:100%}}
+  .slot-editor{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .slot-editor .info{flex:1 1 320px;min-width:220px}
+  .slot-editor form{display:inline-flex;align-items:center;gap:6px;margin:0}
+  .select-compact{min-width:200px;height:32px}.btn-compact{padding:4px 8px;line-height:1}
+  .member-chip{display:inline-block;padding:6px 10px;border:1px solid #cbd5e1;border-radius:999px;margin:4px;background:#fff;cursor:grab;user-select:none}
+  .member-chip:active{cursor:grabbing}
+  .drop-target{border:1px dashed transparent;border-radius:8px;padding:6px}
+  .drop-target.drop-hover{border-color:#6b46c1;background:#f8f5ff}
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container" style="display:flex;gap:16px;align-items:center">
+      <span class="brand">管理画面</span>
+      <nav>
+        <%= link_to "イベント", admin_events_path %>
+        <%= link_to "メンバー", admin_members_path %>
+        <%= link_to "公開一覧", events_path %>
+      </nav>
+      <div class="right">
+        <%= button_to "ログアウト", destroy_admin_session_path,
+            method: :delete, form: { style: "display:inline;" }, class: "btn btn-outline link-btn" %>
+      </div>
+    </div>
+  </header>
+
+  <main class="page container">
+    <%= yield %>
+  </main>
+
+  <!-- DnD 用インラインJS（JSON応答を処理） -->
+  <script>
+  (() => {
+    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    document.addEventListener('dragstart', e => {
+      const src = e.target.closest('[data-member-id]');
+      if(!src) return;
+      e.dataTransfer.setData('text/plain', src.dataset.memberId);
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+
+    document.addEventListener('dragover', e => {
+      const box = e.target.closest('[data-drop-slot]');
+      if (!box) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      box.classList.add('drop-hover');
+    });
+
+    document.addEventListener('dragleave', e => {
+      const box = e.target.closest('[data-drop-slot]');
+      if (box) box.classList.remove('drop-hover');
+    });
+
+    document.addEventListener('drop', async e => {
+      const drop = e.target.closest('[data-drop-slot]');
+      if(!drop) return;
+      e.preventDefault();
+      drop.classList.remove('drop-hover');
+
+      const memberId = e.dataTransfer.getData('text/plain');
+      const matchId  = drop.dataset.matchId;
+      const slotKey  = drop.dataset.dropSlot;
+      const url      = drop.dataset.updateUrl;
+
+      if (!memberId || !matchId || !slotKey || !url) return;
+
+      try {
+        const body = new URLSearchParams({ match_id: matchId, slot_key: slotKey, member_id: memberId });
+        const res = await fetch(url, {
+          method: 'PATCH',
+          credentials: 'same-origin',
+          headers: {
+            'X-CSRF-Token': token,
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+          },
+          body
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) {
+          window.location.reload();
+        } else {
+          alert(data.error || ('更新に失敗しました (HTTP ' + res.status + ')'));
+        }
+      } catch (err) {
+        alert('通信エラー: ' + (err?.message || 'unknown'));
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

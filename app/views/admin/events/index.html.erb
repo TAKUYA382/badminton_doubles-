@@ -1,0 +1,64 @@
+<!-- app/views/admin/events/index.html.erb -->
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">イベント一覧</h1>
+  </div>
+
+  <!-- 新規イベント作成ボタン -->
+  <div style="margin-bottom:16px;">
+    <%= link_to "＋ 新規イベント", new_admin_event_path, class: "btn btn-primary" %>
+  </div>
+
+  <% if @events.present? %>
+    <table class="table table-striped" style="min-width:720px;">
+      <thead>
+        <tr>
+          <th style="width:140px;">日付</th>
+          <th>タイトル</th>
+          <th style="width:80px;">コート数</th>
+          <th style="width:80px;">公開</th>
+          <th style="width:180px;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @events.each do |event| %>
+          <tr>
+            <!-- 日付 -->
+            <td><%= event.date.strftime("%Y-%m-%d") %></td>
+
+            <!-- タイトル -->
+            <td><strong><%= event.title.presence || "（無題イベント）" %></strong></td>
+
+            <!-- コート数 -->
+            <td style="text-align:center;"><%= event.court_count %></td>
+
+            <!-- 公開ステータス -->
+            <td style="text-align:center;">
+              <% if event.status_published? %>
+                <span style="color:green; font-weight:bold;">公開中</span>
+              <% else %>
+                <span style="color:#999;">非公開</span>
+              <% end %>
+            </td>
+
+            <!-- 操作 -->
+            <td style="text-align:center;">
+              <%= link_to "詳細", admin_event_path(event), class: "btn btn-outline btn-compact" %>
+              <%= link_to "編集", edit_admin_event_path(event), class: "btn btn-outline btn-compact" %>
+              <%= link_to "削除", admin_event_path(event),
+                    method: :delete,
+                    data: { turbo_confirm: "イベント「#{event.title}」を削除しますか？" },
+                    class: "btn btn-danger btn-compact" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="muted" style="margin-top:20px;">
+      現在、イベントは登録されていません。<br>
+      「＋ 新規イベント」から登録してください。
+    </p>
+  <% end %>
+</div>
