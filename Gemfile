@@ -15,7 +15,7 @@ gem "devise", "~> 4.9"
 gem "nokogiri", "~> 1.18"
 
 group :development, :test do
-  gem "sqlite3", "~> 1.7"           
+  gem "sqlite3", "~> 2.7"           
   gem "dotenv-rails"                
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem "brakeman", require: false
