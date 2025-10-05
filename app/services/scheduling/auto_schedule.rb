@@ -57,7 +57,7 @@ module Scheduling
     # =====================================
     # 男女別：男子→女子の順に“作れたカード”を積んでから連番採番
     # 男子は 1 コートから強→弱、女子は続きのコートで強→弱
-    # 強さ：A帯→B帯→C帯→D帯（A帯は A+,A,A- を含む…）
+    # 強さ：A帯→B帯→C帯→D帯（A帯は A+,A,A- を含む）
     # =====================================
     def schedule_split_ranked!
       male_courts   = (@courts / 2.0).ceil
@@ -77,33 +77,33 @@ module Scheduling
         (1..male_courts).each do |pos|
           desired_band = band_for_position(pos)
           quad = pick_quad_for_gender_and_band(males, desired_band, used_round)
-          next if quad.size < 4
+          break if quad.size < 4
           p1, p2 = best_pairing_for_quad(quad, desired_band)
           made << [:male, desired_band, p1, p2]
           mark_used!(quad, used_round)
         end
 
-        # --- 女子：男子の続き。1..female_courts の pos を A→B→C→D に対応
+        # --- 女子：男子の続き。1..female_courts を A→B→C→D に対応
         (1..female_courts).each do |pos|
           desired_band = band_for_position(pos)
           quad = pick_quad_for_gender_and_band(females, desired_band, used_round)
-          next if quad.size < 4
+          break if quad.size < 4
           p1, p2 = best_pairing_for_quad(quad, desired_band)
           made << [:female, desired_band, p1, p2]
           mark_used!(quad, used_round)
         end
 
-        # ---- ここが重要：作れたカードだけを強い順に並べ、連番で採番（欠番を作らない）
-        # 男子→女子の順を保ちつつ、同じ性別内は desired_band の降順で並べる
-        male_made   = made.select { |sex, _band, _p1, _p2| sex == :male }
+        # ---- ここが重要：作れたカードだけを強い順に並べ、連番で採番（欠番なし）
+        male_made   = made.select { |sex, *_| sex == :male }
                           .sort_by { |_sex, band, p1, p2| [-band, -match_strength(p1, p2)] }
-        female_made = made.select { |sex, _band, _p1, _p2| sex == :female }
+        female_made = made.select { |sex, *_| sex == :female }
                           .sort_by { |_sex, band, p1, p2| [-band, -match_strength(p1, p2)] }
 
         court_no = 1
         male_made.each do |_sex, _band, p1, p2|
           create_match!(round, court_no, p1, p2)
           court_no += 1
+          break if court_no > @courts
         end
         female_made.each do |_sex, _band, p1, p2|
           break if court_no > @courts
@@ -201,9 +201,8 @@ module Scheduling
 
         dev = 0
         if desired_band
-          avg1 = (fine_skill(p1[0]) + fine_skill(p1[1])) / 2.0
-          avg2 = (fine_skill(p2[0]) + fine_skill(p2[1])) / 2.0
-          # 目標帯の代表値（A=100, B=70, C=40, D=10 といった“間隔広め”で吸着）
+          avg1   = (fine_skill(p1[0]) + fine_skill(p1[1])) / 2.0
+          avg2   = (fine_skill(p2[0]) + fine_skill(p2[1])) / 2.0
           target = representative_score_for_band(desired_band)
           dev    = (avg1 - target).abs + (avg2 - target).abs
         end
@@ -252,36 +251,41 @@ module Scheduling
     # - enum を使っていれば Member.skill_levels[member.skill_level] を優先
     # - 文字列でも A_plus/A/A_minus/…/D を解釈
     def fine_skill(member)
-      if defined?(Member) && Member.respond_to?(:skill_levels)
-        # enum が { "A_plus"=>10, "A"=>9, ... "D"=>0 } のように定義されている前提
-        return Member.skill_levels[member.skill_level].to_i rescue 0
+      # enum（例: { "A_plus"=>10, "A"=>9, "A_minus"=>8, ... "D"=>0 }）
+      if defined?(Member) && Member.respond_to?(:skill_levels) && member.respond_to?(:skill_level)
+        val = Member.skill_levels[member.skill_level] rescue nil
+        return val.to_i if val
       end
 
-      key = member.respond_to?(:skill_level) ? member.skill_level.to_s : ""
-      case key
-      when /A\+?/i        then 10
-      when /A-$/i         then 8
-      when /B\+$/i        then 7
-      when /^B$/i         then 6
-      when /B-$/i         then 5
-      when /C\+$/i        then 4
-      when /^C$/i         then 3
-      when /C-$/i         then 2
-      when /D\+$/i         then 1
-      when /^D$/i          then 0
-      when /advanced/i     then 9
-      when /middle/i       then 6
-      when /beginner/i     then 3
-      else 0
-      end
+      # 文字列パターンにも対応
+      key = member.respond_to?(:skill_level) ? member.skill_level.to_s.strip : ""
+
+      # 正規化（全て大文字・アンダースコア化）
+      norm = key.upcase.gsub("-", "_")
+
+      table = {
+        "A_PLUS" => 10, "A" => 9,  "A_MINUS" => 8,
+        "B_PLUS" => 7,  "B" => 6,  "B_MINUS" => 5,
+        "C_PLUS" => 4,  "C" => 3,  "C_MINUS" => 2,
+        "D_PLUS" => 1,  "D" => 0
+      }
+      return table[norm] if table.key?(norm)
+
+      # 旧表記のゆるい対応
+      return 9 if norm.include?("ADVANCED")
+      return 6 if norm.include?("MIDDLE")
+      return 3 if norm.include?("BEGINNER")
+
+      0
     end
 
     # A/B/C/D の 4 帯へ圧縮（A=4, B=3, C=2, D=1）
+    # ※ A- も A帯として扱う（バグ修正）
     def band_of(member)
       s = fine_skill(member)
       case s
-      when 9..10 then 4 # A帯（A+,A）
-      when 5..8  then 3 # B帯（B-,B,B+ / A-）
+      when 8..10 then 4 # A帯（A-,A,A+）
+      when 5..7  then 3 # B帯（B-,B,B+）
       when 2..4  then 2 # C帯（C-,C,C+）
       else            1 # D帯（D,D+ 他）
       end
@@ -324,4 +328,3 @@ module Scheduling
     end
 
     def ng_opponent?(pair1, pair2)
-      return false unle
