@@ -19,6 +19,7 @@ module Scheduling
 
     def call
       @played_counts = Hash.new(0)
+
       return Result.new(false, "このイベントの参加者（参加）が4名以上必要です") if @members.size < 4
       return Result.new(false, "コート数が1以上必要です") if @courts < 1
 
@@ -27,8 +28,8 @@ module Scheduling
         @event.rounds.destroy_all
 
         case @mode
-        when "split"  then schedule_split_ranked!   # ★ご要望の“男女別 + コートでランク固定”
-        when "mixed"  then schedule_mixed_balanced!
+        when "split" then schedule_split_ranked!
+        when "mixed" then schedule_mixed_balanced!
         else
           raise ArgumentError, "未知のメイキングモード: #{@mode}"
         end
@@ -43,7 +44,6 @@ module Scheduling
 
     # =====================================
     # 参加者の抽出：このイベントで「参加」だけ
-    # Event has_many :event_participants, each belongs_to :member と想定
     # =====================================
     def pick_attending_members(event)
       event.event_participants
@@ -55,12 +55,9 @@ module Scheduling
     end
 
     # =====================================
-    # ★ 男女別：1..男コート(A,B,C,D..), 続き..女コート(A,B,C,D..)
-    # ・男子は 1 コートから A,B,C,D …
-    # ・女子は 男コートの続きから A,B,C,D …
-    # ・指定ランクが4人に満たない場合は「目標ランクに近い順」→「強い順」で補完
-    # ・同一ラウンド内で重複出場しない
-    # ・ペア/対戦は“差が小さい”&“目標ランクに近い”組み合わせを優先
+    # 男女別：男子→女子の順に“作れたカード”を積んでから連番採番
+    # 男子は 1 コートから強→弱、女子は続きのコートで強→弱
+    # 強さ：A帯→B帯→C帯→D帯（A帯は A+,A,A- を含む…）
     # =====================================
     def schedule_split_ranked!
       male_courts   = (@courts / 2.0).ceil
@@ -74,52 +71,111 @@ module Scheduling
         round      = @event.rounds.create!(index: round_idx)
         used_round = Set.new
 
-        # --- 男子（コート 1..male_courts） ---
-        1.upto(male_courts) do |pos|
-          desired = desired_rank_for_position(pos) # 1=>A, 2=>B, 3=>C, 4=>D, それ以降は E=0
-          quad    = pick_quad_for_gender_and_rank(males, desired, used_round)
+        made = [] # [[:male/:female, desired_band(4..1), pair1, pair2], ...]
+
+        # --- 男子：A(4)→B(3)→C(2)→D(1) 帯で male_courts 枚を目標に順次作る
+        (1..male_courts).each do |pos|
+          desired_band = band_for_position(pos)
+          quad = pick_quad_for_gender_and_band(males, desired_band, used_round)
           next if quad.size < 4
-          p1, p2 = best_pairing_for_quad(quad, desired)
-          create_match!(round, pos, p1, p2)
+          p1, p2 = best_pairing_for_quad(quad, desired_band)
+          made << [:male, desired_band, p1, p2]
           mark_used!(quad, used_round)
         end
 
-        # --- 女子（コート male_courts+1..@courts） ---
-        1.upto(female_courts) do |offset|
-          court_no = male_courts + offset
-          desired  = desired_rank_for_position(offset) # 女子も 1=>A,2=>B,…
-          quad     = pick_quad_for_gender_and_rank(females, desired, used_round)
+        # --- 女子：男子の続き。1..female_courts の pos を A→B→C→D に対応
+        (1..female_courts).each do |pos|
+          desired_band = band_for_position(pos)
+          quad = pick_quad_for_gender_and_band(females, desired_band, used_round)
           next if quad.size < 4
-          p1, p2 = best_pairing_for_quad(quad, desired)
-          create_match!(round, court_no, p1, p2)
+          p1, p2 = best_pairing_for_quad(quad, desired_band)
+          made << [:female, desired_band, p1, p2]
           mark_used!(quad, used_round)
+        end
+
+        # ---- ここが重要：作れたカードだけを強い順に並べ、連番で採番（欠番を作らない）
+        # 男子→女子の順を保ちつつ、同じ性別内は desired_band の降順で並べる
+        male_made   = made.select { |sex, _band, _p1, _p2| sex == :male }
+                          .sort_by { |_sex, band, p1, p2| [-band, -match_strength(p1, p2)] }
+        female_made = made.select { |sex, _band, _p1, _p2| sex == :female }
+                          .sort_by { |_sex, band, p1, p2| [-band, -match_strength(p1, p2)] }
+
+        court_no = 1
+        male_made.each do |_sex, _band, p1, p2|
+          create_match!(round, court_no, p1, p2)
+          court_no += 1
+        end
+        female_made.each do |_sex, _band, p1, p2|
+          break if court_no > @courts
+          create_match!(round, court_no, p1, p2)
+          court_no += 1
         end
       end
     end
 
-    # 位置→希望ランク（数値）  A=4, B=3, C=2, D=1, それ以降 0
-    def desired_rank_for_position(pos)
+    # コート位置→希望バンド（A=4, B=3, C=2, D=1, それ以外=0）
+    def band_for_position(pos)
       case pos
       when 1 then 4
       when 2 then 3
       when 3 then 2
       when 4 then 1
-      else         0
+      else 0
       end
     end
 
-    # 指定性別グループから“同ラウンド未使用”の 4 人を、希望ランクに“近い順”→出場回数少→強い順で選ぶ
-    # 不足する場合は自動で近いランクから補完（結果的に「上のランクから順に」も満たす）
-    def pick_quad_for_gender_and_rank(group, desired_rank, used_round)
+    # =====================================
+    # MIX：回数が少ない順に 4 人拾って作れるだけ作る → 強い順に 1..@courts 採番
+    # =====================================
+    def schedule_mixed_balanced!
+      1.upto(@target_rounds) do |round_idx|
+        round      = @event.rounds.create!(index: round_idx)
+        used_round = Set.new
+        made       = []
+
+        # まず作れるだけカードを作る（同一ラウンド内で重複出場なし）
+        loop do
+          pool = @members.reject { |m| used_round.include?(m.id) }
+                         .sort_by { |m| [@played_counts[m.id], -fine_skill(m), m.id] }
+          break if pool.size < 4
+          quad = pool.first(4)
+          p1, p2 = best_pairing_for_quad(quad, nil)
+          made << [p1, p2]
+          mark_used!(quad, used_round)
+          break if made.size >= @courts
+        end
+
+        # 強い順に 1..@courts で採番（欠番なし）
+        made.sort_by! { |p1, p2| -match_strength(p1, p2) }
+        court_no = 1
+        made.each do |p1, p2|
+          create_match!(round, court_no, p1, p2)
+          court_no += 1
+          break if court_no > @courts
+        end
+      end
+    end
+
+    # =====================================
+    # 選手選定・スコア
+    # =====================================
+
+    # 指定性別から“同ラウンド未使用”の4人を、希望バンドに近い順 → 出場回数少 → 細かいスコア強 → id
+    # 希望に満たない場合は自動補完（近い帯から）
+    def pick_quad_for_gender_and_band(group, desired_band, used_round)
       pool = group.reject { |m| used_round.include?(m.id) }
       return [] if pool.size < 4
 
-      # 目標に近い順（差の絶対値）、次に出場回数が少ない、最後に強い順
-      sorted = pool.sort_by { |m| [ (rank_value(m) - desired_rank).abs, @played_counts[m.id], -rank_value(m), m.id ] }
-      # まず 4 人候補
-      pick = sorted.first(4)
+      sorted = pool.sort_by do |m|
+        [
+          (band_of(m) - desired_band).abs,
+          @played_counts[m.id],
+          -fine_skill(m),
+          m.id
+        ]
+      end
 
-      # NG などで弾かれて 4 未満になったら、順に追加して満たす
+      pick = sorted.first(4)
       i = 4
       while pick.size < 4 && i < sorted.size
         pick << sorted[i]
@@ -128,8 +184,8 @@ module Scheduling
       pick
     end
 
-    # 与えられた4人を「ペア内の差 + 目標ランクからのズレ」が最小になる 2 ペアに分割
-    def best_pairing_for_quad(quad, desired_rank)
+    # 4人を 2 ペアに分ける。ペア内差 +（必要なら）希望帯からのズレ を最小に
+    def best_pairing_for_quad(quad, desired_band)
       a, b, c, d = quad
       candidates = [
         [[a, b], [c, d]],
@@ -138,28 +194,28 @@ module Scheduling
       ]
 
       scored = candidates.map do |p1, p2|
-        # NGチェック（定義が無い環境でも落ちないようガード）
         next if ng_pair?(p1[0], p1[1]) || ng_pair?(p2[0], p2[1]) || ng_opponent?(p1, p2)
 
-        p1_gap = (rank_value(p1[0]) - rank_value(p1[1])).abs
-        p2_gap = (rank_value(p2[0]) - rank_value(p2[1])).abs
+        p1_gap = (fine_skill(p1[0]) - fine_skill(p1[1])).abs
+        p2_gap = (fine_skill(p2[0]) - fine_skill(p2[1])).abs
 
         dev = 0
-        if desired_rank
-          avg1 = (rank_value(p1[0]) + rank_value(p1[1])) / 2.0
-          avg2 = (rank_value(p2[0]) + rank_value(p2[1])) / 2.0
-          dev  = (avg1 - desired_rank).abs + (avg2 - desired_rank).abs
+        if desired_band
+          avg1 = (fine_skill(p1[0]) + fine_skill(p1[1])) / 2.0
+          avg2 = (fine_skill(p2[0]) + fine_skill(p2[1])) / 2.0
+          # 目標帯の代表値（A=100, B=70, C=40, D=10 といった“間隔広め”で吸着）
+          target = representative_score_for_band(desired_band)
+          dev    = (avg1 - target).abs + (avg2 - target).abs
         end
 
-        score = p1_gap + p2_gap + dev
-        [p1, p2, score]
+        [p1, p2, p1_gap + p2_gap + dev]
       end.compact
 
-      # すべて NG なら、差だけで最小の組み合わせを採用
+      # すべて NG なら、差だけで最小の組み合わせ
       if scored.empty?
         scored = candidates.map do |p1, p2|
-          p1_gap = (rank_value(p1[0]) - rank_value(p1[1])).abs
-          p2_gap = (rank_value(p2[0]) - rank_value(p2[1])).abs
+          p1_gap = (fine_skill(p1[0]) - fine_skill(p1[1])).abs
+          p2_gap = (fine_skill(p2[0]) - fine_skill(p2[1])).abs
           [p1, p2, p1_gap + p2_gap]
         end
       end
@@ -168,64 +224,66 @@ module Scheduling
       [best[0], best[1]]
     end
 
-    # =====================================
-    # MIX：全体バランス（参加回数が均等、強すぎる偏りを抑える）
-    # ※ご要望の主対象は split なので、MIX は従来通りのバランス寄り
-    # =====================================
-    def schedule_mixed_balanced!
-      1.upto(@target_rounds) do |round_idx|
-        round      = @event.rounds.create!(index: round_idx)
-        used_round = Set.new
-
-        1.upto(@courts) do |court_no|
-          pool = @members.reject { |m| used_round.include?(m.id) }
-                         .sort_by { |m| [@played_counts[m.id], -rank_value(m), m.id] }
-          break if pool.size < 4
-
-          quad = pool.first(4)
-          p1, p2 = best_pairing_for_quad(quad, nil)
-          create_match!(round, court_no, p1, p2)
-          mark_used!(quad, used_round)
-        end
-      end
+    # コート並べ替え用の“試合強度”
+    def match_strength(p1, p2)
+      pair_strength(p1) + pair_strength(p2)
     end
 
-    # =====================================
-    # 共通ユーティリティ
-    # =====================================
-
-    # 対戦を1件作成
-    def create_match!(round, court_number, pair1, pair2)
-      round.matches.create!(
-        court_number:    court_number,
-        pair1_member1:   pair1[0],
-        pair1_member2:   pair1[1],
-        pair2_member1:   pair2[0],
-        pair2_member2:   pair2[1]
-      )
+    def pair_strength(pair)
+      pair.sum { |m| fine_skill(m) }
     end
 
-    # ラウンド内使用 & 出場回数カウント
-    def mark_used!(members4, used_round)
-      members4.each do |m|
-        used_round << m.id
-        @played_counts[m.id] += 1
-      end
-    end
-
-    # ランク値：A=4, B=3, C=2, D=1, その他=0
-    # skill_level に "A/B/C/D" を推奨（他に "advanced/middle/beginner" も簡易対応）
-    def rank_value(member)
-      raw = (member.respond_to?(:skill_level) && member.skill_level).to_s.strip.downcase
-      case raw
-      when "a"        then 4
-      when "b"        then 3
-      when "c"        then 2
-      when "d"        then 1
-      when "advanced" then 4
-      when "middle"   then 3
-      when "beginner" then 2
+    # 帯（A..D）の代表値（強さ吸着用）
+    def representative_score_for_band(band)
+      case band
+      when 4 then 100 # A 帯
+      when 3 then 70  # B 帯
+      when 2 then 40  # C 帯
+      when 1 then 10  # D 帯
       else 0
+      end
+    end
+
+    # =====================================
+    # 属性・カウント
+    # =====================================
+
+    # “細かい段位”の数値スコア（大きいほど強い）
+    # - enum を使っていれば Member.skill_levels[member.skill_level] を優先
+    # - 文字列でも A_plus/A/A_minus/…/D を解釈
+    def fine_skill(member)
+      if defined?(Member) && Member.respond_to?(:skill_levels)
+        # enum が { "A_plus"=>10, "A"=>9, ... "D"=>0 } のように定義されている前提
+        return Member.skill_levels[member.skill_level].to_i rescue 0
+      end
+
+      key = member.respond_to?(:skill_level) ? member.skill_level.to_s : ""
+      case key
+      when /A\+?/i        then 10
+      when /A-$/i         then 8
+      when /B\+$/i        then 7
+      when /^B$/i         then 6
+      when /B-$/i         then 5
+      when /C\+$/i        then 4
+      when /^C$/i         then 3
+      when /C-$/i         then 2
+      when /D\+$/i         then 1
+      when /^D$/i          then 0
+      when /advanced/i     then 9
+      when /middle/i       then 6
+      when /beginner/i     then 3
+      else 0
+      end
+    end
+
+    # A/B/C/D の 4 帯へ圧縮（A=4, B=3, C=2, D=1）
+    def band_of(member)
+      s = fine_skill(member)
+      case s
+      when 9..10 then 4 # A帯（A+,A）
+      when 5..8  then 3 # B帯（B-,B,B+ / A-）
+      when 2..4  then 2 # C帯（C-,C,C+）
+      else            1 # D帯（D,D+ 他）
       end
     end
 
@@ -237,15 +295,33 @@ module Scheduling
       :unknown
     end
 
-    # NG 関係（定義が無い環境でも落ちないようにガード）
+    # =====================================
+    # 生成・カウント
+    # =====================================
+
+    def create_match!(round, court_number, pair1, pair2)
+      round.matches.create!(
+        court_number:  court_number,
+        pair1_member1: pair1[0], pair1_member2: pair1[1],
+        pair2_member1: pair2[0], pair2_member2: pair2[1]
+      )
+    end
+
+    # ラウンド内使用 & 出場回数カウント
+    def mark_used!(members4, used_round)
+      members4.each do |m|
+        used_round << m.id
+        @played_counts[m.id] += 1
+      end
+    end
+
+    # =====================================
+    # NG helpers（定義が無い環境でも落ちないようガード）
+    # =====================================
     def ng_pair?(a, b)
       return false unless defined?(MemberRelation) && MemberRelation.respond_to?(:ng_between?)
       MemberRelation.ng_between?(a.id, b.id, :avoid_pair)
     end
 
     def ng_opponent?(pair1, pair2)
-      return false unless defined?(MemberRelation) && MemberRelation.respond_to?(:ng_between?)
-      pair1.any? { |x| pair2.any? { |y| MemberRelation.ng_between?(x.id, y.id, :avoid_opponent) } }
-    end
-  end
-end
+      return false unle
