@@ -12,15 +12,16 @@ module Scheduling
     def initialize(event, target_rounds: nil, mode: "split")
       @event         = event
       @courts        = event.court_count.to_i
-      @members       = pick_attending_members(event) # このイベントに「参加」のメンバーだけ
+      @members       = pick_base_members(event) # このイベントの「不参加以外」のメンバー
       @target_rounds = (target_rounds.presence || 1).to_i
       @mode          = mode.to_s
+      @ep_cache      = {} # member_id => EventParticipant
     end
 
     def call
       @played_counts = Hash.new(0)
 
-      return Result.new(false, "このイベントの参加者（参加）が4名以上必要です") if @members.size < 4
+      return Result.new(false, "このイベントの参加者（不参加以外）が4名以上必要です") if @members.size < 4
       return Result.new(false, "コート数が1以上必要です") if @courts < 1
 
       ActiveRecord::Base.transaction do
@@ -43,37 +44,56 @@ module Scheduling
     private
 
     # =====================================
-    # 参加者の抽出：このイベントで「参加」だけ
+    # 参加者の抽出：このイベントで「不参加以外」
+    #  - attending / undecided /（途中参加・途中退出を含む）を対象
     # =====================================
-    def pick_attending_members(event)
-      event.event_participants
-           .where(status: :attending)
-           .includes(:member)
-           .map(&:member)
-           .compact
-           .uniq
+    def pick_base_members(event)
+      eps = event.event_participants
+                  .where.not(status: :absent)
+                  .includes(:member)
+
+      # cache: member_id => EventParticipant
+      eps.each { |ep| @ep_cache[ep.member_id] = ep }
+
+      eps.map(&:member).compact.uniq
+    end
+
+    # このラウンド index に“在席しているか？”（到着/退出ラウンドを考慮）
+    # - arrival_round が nil なら最初から在席
+    # - departure_round が nil なら最後まで在席
+    # - 1-indexed のラウンド番号で判定
+    def available_on_round?(member, round_idx)
+      ep = @ep_cache[member.id] || @event.event_participants.find_by(member_id: member.id)
+      return false unless ep
+      arr = ep.respond_to?(:arrival_round)   ? ep.arrival_round.to_i   : nil
+      dep = ep.respond_to?(:departure_round) ? ep.departure_round.to_i : nil
+
+      arrived   = arr.nil? || arr <= 0 || arr <= round_idx
+      not_left  = dep.nil? || dep <= 0 || round_idx <= dep
+      arrived && not_left
     end
 
     # =====================================
     # 男女別：男子→女子の順に“作れたカード”を積んでから連番採番
     # 男子は 1 コートから強→弱、女子は続きのコートで強→弱
     # 強さ：A帯→B帯→C帯→D帯（A帯は A+,A,A- を含む）
+    # 途中参加/退出により人数不足なら“作れた分だけ”連番で詰める（欠番なし）
     # =====================================
     def schedule_split_ranked!
       male_courts   = (@courts / 2.0).ceil
       female_courts = @courts - male_courts
 
-      males   = @members.select { |m| gender_of(m) == :male }
-      females = @members.select { |m| gender_of(m) == :female }
-      raise "男子または女子の人数が足りません（各4名以上）" if males.size < 4 || females.size < 4
-
       1.upto(@target_rounds) do |round_idx|
         round      = @event.rounds.create!(index: round_idx)
         used_round = Set.new
+        made       = [] # [[:male/:female, desired_band(4..1), pair1, pair2], ...]
 
-        made = [] # [[:male/:female, desired_band(4..1), pair1, pair2], ...]
+        # 今ラウンド在席メンバーだけからプールを作る
+        avail = @members.select { |m| available_on_round?(m, round_idx) }
+        males   = avail.select { |m| gender_of(m) == :male }
+        females = avail.select { |m| gender_of(m) == :female }
 
-        # --- 男子：A(4)→B(3)→C(2)→D(1) 帯で male_courts 枚を目標に順次作る
+        # 男子：A(4)→B(3)→C(2)→D(1) の帯で male_courts 枚を目標に順次作る
         (1..male_courts).each do |pos|
           desired_band = band_for_position(pos)
           quad = pick_quad_for_gender_and_band(males, desired_band, used_round)
@@ -83,7 +103,7 @@ module Scheduling
           mark_used!(quad, used_round)
         end
 
-        # --- 女子：男子の続き。1..female_courts を A→B→C→D に対応
+        # 女子：男子の続き。同じく A→B→C→D 目標で female_courts 枚
         (1..female_courts).each do |pos|
           desired_band = band_for_position(pos)
           quad = pick_quad_for_gender_and_band(females, desired_band, used_round)
@@ -93,7 +113,8 @@ module Scheduling
           mark_used!(quad, used_round)
         end
 
-        # ---- ここが重要：作れたカードだけを強い順に並べ、連番で採番（欠番なし）
+        # 作れたカードだけを強い順（同帯なら match_strength 降順）に並べて、
+        # 男子→女子の順で 1..@courts に連番採番（欠番なし）
         male_made   = made.select { |sex, *_| sex == :male }
                           .sort_by { |_sex, band, p1, p2| [-band, -match_strength(p1, p2)] }
         female_made = made.select { |sex, *_| sex == :female }
@@ -101,9 +122,9 @@ module Scheduling
 
         court_no = 1
         male_made.each do |_sex, _band, p1, p2|
+          break if court_no > @courts
           create_match!(round, court_no, p1, p2)
           court_no += 1
-          break if court_no > @courts
         end
         female_made.each do |_sex, _band, p1, p2|
           break if court_no > @courts
@@ -125,7 +146,9 @@ module Scheduling
     end
 
     # =====================================
-    # MIX：回数が少ない順に 4 人拾って作れるだけ作る → 強い順に 1..@courts 採番
+    # MIX：回数が少ない順に 4 人拾って作れるだけ作る
+    #  → 強い順に 1..@courts で採番（欠番なし）
+    # 途中参加/退出にも自動対応
     # =====================================
     def schedule_mixed_balanced!
       1.upto(@target_rounds) do |round_idx|
@@ -133,11 +156,13 @@ module Scheduling
         used_round = Set.new
         made       = []
 
-        # まず作れるだけカードを作る（同一ラウンド内で重複出場なし）
         loop do
-          pool = @members.reject { |m| used_round.include?(m.id) }
-                         .sort_by { |m| [@played_counts[m.id], -fine_skill(m), m.id] }
+          pool = @members
+                   .select { |m| available_on_round?(m, round_idx) }
+                   .reject { |m| used_round.include?(m.id) }
+                   .sort_by { |m| [@played_counts[m.id], -fine_skill(m), m.id] }
           break if pool.size < 4
+
           quad = pool.first(4)
           p1, p2 = best_pairing_for_quad(quad, nil)
           made << [p1, p2]
@@ -145,13 +170,12 @@ module Scheduling
           break if made.size >= @courts
         end
 
-        # 強い順に 1..@courts で採番（欠番なし）
         made.sort_by! { |p1, p2| -match_strength(p1, p2) }
         court_no = 1
         made.each do |p1, p2|
+          break if court_no > @courts
           create_match!(round, court_no, p1, p2)
           court_no += 1
-          break if court_no > @courts
         end
       end
     end
@@ -247,22 +271,17 @@ module Scheduling
     # 属性・カウント
     # =====================================
 
-    # “細かい段位”の数値スコア（大きいほど強い）
-    # - enum を使っていれば Member.skill_levels[member.skill_level] を優先
+    # 細かい段位の数値スコア（大きいほど強い）
+    # - enum があれば Member.skill_levels[member.skill_level] を使用
     # - 文字列でも A_plus/A/A_minus/…/D を解釈
     def fine_skill(member)
-      # enum（例: { "A_plus"=>10, "A"=>9, "A_minus"=>8, ... "D"=>0 }）
       if defined?(Member) && Member.respond_to?(:skill_levels) && member.respond_to?(:skill_level)
         val = Member.skill_levels[member.skill_level] rescue nil
         return val.to_i if val
       end
 
-      # 文字列パターンにも対応
-      key = member.respond_to?(:skill_level) ? member.skill_level.to_s.strip : ""
-
-      # 正規化（全て大文字・アンダースコア化）
+      key  = member.respond_to?(:skill_level) ? member.skill_level.to_s.strip : ""
       norm = key.upcase.gsub("-", "_")
-
       table = {
         "A_PLUS" => 10, "A" => 9,  "A_MINUS" => 8,
         "B_PLUS" => 7,  "B" => 6,  "B_MINUS" => 5,
@@ -275,12 +294,11 @@ module Scheduling
       return 9 if norm.include?("ADVANCED")
       return 6 if norm.include?("MIDDLE")
       return 3 if norm.include?("BEGINNER")
-
       0
     end
 
     # A/B/C/D の 4 帯へ圧縮（A=4, B=3, C=2, D=1）
-    # ※ A- も A帯として扱う（バグ修正）
+    # ※ A- も A帯として扱う
     def band_of(member)
       s = fine_skill(member)
       case s
@@ -291,14 +309,14 @@ module Scheduling
       end
     end
 
-    # gender を :male / :female 正規化（日本語も許容）
+    # gender を :male / :female に正規化（日本語も許容）
     def gender_of(member)
       g = (member.respond_to?(:gender) && member.gender).to_s.strip.downcase
       return :male   if %w[male m 男 男子].include?(g)
       return :female if %w[female f 女 女子].include?(g)
       :unknown
     end
-
+    
     # =====================================
     # 生成・カウント
     # =====================================
@@ -328,3 +346,8 @@ module Scheduling
     end
 
     def ng_opponent?(pair1, pair2)
+      return false unless defined?(MemberRelation) && MemberRelation.respond_to?(:ng_between?)
+      pair1.any? { |x| pair2.any? { |y| MemberRelation.ng_between?(x.id, y.id, :avoid_opponent) } }
+    end
+  end
+end
