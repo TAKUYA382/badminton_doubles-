@@ -27,8 +27,18 @@ ja:
         avoid_pair: "ペアNG"
         avoid_opponent: "対戦NG"
 
+    # 既存ビュー等で使っている場合への互換用（残してOK）
     attendance:
       status:
         undecided: "未定"
         attending: "参加"
         absent: "不参加"
+
+    # 新しい出欠モデル（EventParticipant）用のラベル
+    event_participant:
+      status:
+        undecided:   "未定"
+        attending:   "参加"
+        late:        "途中参加"
+        early_leave: "途中退出"
+        absent:      "欠席"
