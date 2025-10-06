@@ -5,73 +5,102 @@
     <p class="page-sub">日付：<%= @event.date %></p>
   </div>
 
-  <!-- 上部アクション（戻る / 参加者一括ペースト など） -->
   <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
     <%= link_to "← イベント詳細に戻る", admin_event_path(@event), class: "btn btn-outline" %>
     <%= link_to "参加者をペースト入力", paste_participants_admin_event_path(@event), class: "btn btn-outline" %>
   </div>
 
   <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
-    <!-- ========== 左：登録済み参加者リスト ========== -->
-    <section style="flex:1 1 560px; min-width:460px;">
+    <!-- 左：登録済み -->
+    <section style="flex:1 1 680px; min-width:560px;">
       <h2 style="margin-bottom:8px;">このイベントの参加者</h2>
 
-      <!-- 簡易サマリ -->
       <% counts = @event_participants.group_by(&:status).transform_values(&:count) %>
       <div class="muted" style="margin-bottom:8px;">
         参加: <span class="badge badge-green"><%= counts["attending"].to_i %></span>
-        / 未定: <span class="badge badge-gray"><%= counts["undecided"].to_i %></span>
-        / 欠席: <span class="badge badge-gray"><%= counts["absent"].to_i %></span>
+        / 途中参加: <%= counts["late"].to_i %>
+        / 途中退出: <%= counts["early_leave"].to_i %>
+        / 未定: <%= counts["undecided"].to_i %>
+        / 不参加: <%= counts["absent"].to_i %>
         / 合計: <%= @event_participants.size %>
       </div>
 
       <div class="table-wrap">
-        <table class="table" style="min-width:560px;">
+        <table class="table" style="min-width:720px;">
           <thead>
             <tr>
               <th>名前</th>
-              <th style="width:220px;">出欠</th>
-              <th style="width:120px;">操作</th>
+              <th style="width:220px;">ステータス</th>
+              <th style="width:220px;">到着R / 退出R</th>
+              <th style="width:140px;">操作</th>
             </tr>
           </thead>
           <tbody>
-            <% @event_participants.each do |ep| %>
-              <tr>
-                <td><%= ep.member.name %></td>
-                <td>
-                  <%= form_with url: admin_event_attendance_path(@event, ep), method: :patch, local: true, style: "display:flex; gap:6px; align-items:center;" do |f| %>
-                    <%= f.select :status,
-                          EventParticipant.statuses.keys.map { |k|
-                            [I18n.t("enums.event_participant.status.#{k}", default: {"attending"=>"参加","undecided"=>"未定","absent"=>"欠席"}[k] || k.humanize), k]
-                          },
-                          { selected: ep.status },
-                          class: "select-compact" %>
-                    <%= f.submit "更新", class: "btn btn-outline btn-compact" %>
-                  <% end %>
-                </td>
-                <td>
-                  <%= link_to "削除",
-                        admin_event_attendance_path(@event, ep),
-                        data: { turbo_confirm: "この参加者をリストから削除します。よろしいですか？" },
-                        method: :delete,
-                        class: "btn btn-danger btn-compact" %>
-                </td>
-              </tr>
-            <% end %>
-            <% if @event_participants.blank? %>
-              <tr><td colspan="3" class="muted">まだ参加者が登録されていません。</td></tr>
-            <% end %>
+          <% @event_participants.each do |ep| %>
+            <tr>
+              <td>
+                <div><strong><%= ep.member.name %></strong></div>
+                <div class="muted" style="font-size:12px;">
+                  <%= ep.member.grade_label %>・<%= ep.member.gender_label %>・<%= ep.member.skill_label %>
+                </div>
+              </td>
+              <td>
+                <%# ★ form_with で PATCH を確実に送る %>
+                <%= form_with url: admin_event_attendance_path(@event, ep),
+                              method: :patch,
+                              local: true,
+                              html: { style: "display:flex; gap:6px; align-items:center;" } do |f| %>
+                  <%= f.select :status,
+                        EventParticipant.statuses.keys.map { |k|
+                          [ { "attending"=>"参加", "late"=>"途中参加", "early_leave"=>"途中退出",
+                              "undecided"=>"未定", "absent"=>"不参加" }[k] || k.humanize, k]
+                        },
+                        { selected: ep.status },
+                        class: "select-compact" %>
+              </td>
+              <td>
+                  <div style="display:flex; gap:6px; align-items:center;">
+                    <%= f.number_field :arrival_round,
+                          value: ep.arrival_round,
+                          min: 1,
+                          placeholder: "例: 2",
+                          class: "input-compact",
+                          style: "width:88px;" %>
+                    <span class="muted">/</span>
+                    <%= f.number_field :leave_round,
+                          value: ep.leave_round,
+                          min: 1,
+                          placeholder: "例: 5",
+                          class: "input-compact",
+                          style: "width:88px;" %>
+                  </div>
+              </td>
+              <td>
+                  <%= f.submit "更新", class: "btn btn-outline btn-compact" %>
+                <% end %>
+                <%= link_to "削除",
+                      admin_event_attendance_path(@event, ep),
+                      data: { turbo_confirm: "この参加者をリストから削除します。よろしいですか？" },
+                      method: :delete,
+                      class: "btn btn-danger btn-compact",
+                      style: "margin-left:6px;" %>
+              </td>
+            </tr>
+          <% end %>
+          <% if @event_participants.blank? %>
+            <tr><td colspan="4" class="muted">まだ参加者が登録されていません。</td></tr>
+          <% end %>
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- ========== 右：未登録メンバー（検索→追加） ========== -->
-    <aside style="flex:1 1 460px; min-width:380px;">
+    <!-- 右：未登録メンバーから追加 -->
+    <aside style="flex:1 1 480px; min-width:420px;">
       <h2 style="margin-bottom:8px;">未登録メンバーから追加</h2>
 
-      <!-- 検索 -->
-      <%= form_with url: admin_event_attendances_path(@event), method: :get, local: true, style: "display:flex; gap:6px; margin-bottom:8px;" do %>
+      <%= form_with url: admin_event_attendances_path(@event), method: :get, local: true,
+                    html: { style: "display:flex; gap:6px; margin-bottom:8px;" } do %>
         <%= text_field_tag :q, params[:q].to_s, placeholder: "名前で検索（例：田中 / たなか）", style: "flex:1 1 auto;" %>
         <button class="btn btn-outline">検索</button>
         <% if params[:q].present? %>
@@ -80,40 +109,45 @@
       <% end %>
 
       <div class="table-wrap">
-        <table class="table" style="min-width:460px;">
+        <table class="table" style="min-width:480px;">
           <thead>
             <tr>
               <th>名前</th>
-              <th style="width:220px;">追加</th>
+              <th style="width:260px;">追加</th>
             </tr>
           </thead>
           <tbody>
-            <% @candidates.each do |mem| %>
-              <tr>
-                <td>
-                  <div><strong><%= mem.name %></strong></div>
-                  <div class="muted" style="font-size:12px;">
-                    <%= mem.grade_label %>・<%= mem.gender_label %>・<%= mem.skill_label %>
-                  </div>
-                </td>
-                <td>
-                  <%= form_with url: admin_event_attendances_path(@event), method: :post, local: true, style: "display:flex; gap:6px; align-items:center; justify-content:flex-end;" do %>
-                    <input type="hidden" name="member_id" value="<%= mem.id %>">
-                    <select name="status" class="select-compact">
-                      <% EventParticipant.statuses.keys.each do |k| %>
-                        <option value="<%= k %>" <%= "selected" if k == "undecided" %>>
-                          <%= I18n.t("enums.event_participant.status.#{k}", default: {"attending"=>"参加","undecided"=>"未定","absent"=>"欠席"}[k] || k.humanize) %>
-                        </option>
-                      <% end %>
-                    </select>
-                    <button class="btn btn-primary btn-compact">追加</button>
-                  <% end %>
-                </td>
-              </tr>
-            <% end %>
-            <% if @candidates.blank? %>
-              <tr><td colspan="2" class="muted">未登録の候補がいません。（左に全員登録済み、または検索条件をご確認ください）</td></tr>
-            <% end %>
+          <% @candidates.each do |mem| %>
+            <tr>
+              <td>
+                <div><strong><%= mem.name %></strong></div>
+                <div class="muted" style="font-size:12px;">
+                  <%= mem.grade_label %>・<%= mem.gender_label %>・<%= mem.skill_label %>
+                </div>
+              </td>
+              <td>
+                <%# 追加も form_with で POST（JS不要で確実） %>
+                <%= form_with url: admin_event_attendances_path(@event), method: :post, local: true,
+                              html: { style: "display:flex; gap:6px; align-items:center; justify-content:flex-end;" } do %>
+                  <input type="hidden" name="member_id" value="<%= mem.id %>">
+
+                  <select name="status" class="select-compact">
+                    <% {"attending"=>"参加","late"=>"途中参加","early_leave"=>"途中退出","undecided"=>"未定","absent"=>"不参加"}.each do |k,label| %>
+                      <option value="<%= k %>" <%= "selected" if k == "undecided" %>><%= label %></option>
+                    <% end %>
+                  </select>
+
+                  <input type="number" name="arrival_round" min="1" placeholder="到着R" class="input-compact" style="width:78px;">
+                  <input type="number" name="leave_round"   min="1" placeholder="退出R" class="input-compact" style="width:78px;">
+
+                  <button class="btn btn-primary btn-compact">追加</button>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+          <% if @candidates.blank? %>
+            <tr><td colspan="2" class="muted">未登録の候補がいません。（左に全員登録済み、または検索条件をご確認ください）</td></tr>
+          <% end %>
           </tbody>
         </table>
       </div>
