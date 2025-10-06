@@ -1,0 +1,25 @@
+<%= form_with(model: [:admin, @event_participant]) do |f| %>
+  <div class="form-group">
+    <%= f.label :member_id, "メンバー" %>
+    <%= f.collection_select :member_id, Member.all, :id, :name, include_blank: true %>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :status, "ステータス" %>
+    <%= f.select :status, EventParticipant.statuses.keys.map { |k| [k, k] }, include_blank: true %>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :arrival_round, "到着ラウンド（途中参加なら）" %>
+    <%= f.number_field :arrival_round, class: "form-control", min: 1 %>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :leave_round, "退出ラウンド（途中退出なら）" %>
+    <%= f.number_field :leave_round, class: "form-control", min: 1 %>
+  </div>
+
+  <div class="form-group">
+    <%= f.submit "保存", class: "btn btn-primary" %>
+  </div>
+<% end %>
