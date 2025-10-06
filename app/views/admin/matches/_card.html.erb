@@ -1,0 +1,26 @@
+<%= turbo_frame_tag dom_id(match) do %>
+  <div class="match-card" data-match-id="<%= match.id %>">
+    <div class="match-card__header">
+      <span><%= match.round.index %>回戦</span>
+      <span><%= match.court_number %>コート</span>
+      <span><%= match.gender_label if match.respond_to?(:gender_label) %></span>
+    </div>
+
+    <div class="match-card__body">
+      <!-- 既存のペア表示・差し替えUIをここに移植してください -->
+      <!-- 例）ペア1 -->
+      <div class="pair">
+        <div class="pair-title">ペア1（編集可）</div>
+        <!-- 既存のセレクト/ボタン群 -->
+        <!-- ... -->
+      </div>
+
+      <!-- 例）ペア2 -->
+      <div class="pair">
+        <div class="pair-title">ペア2（編集可）</div>
+        <!-- 既存のセレクト/ボタン群 -->
+        <!-- ... -->
+      </div>
+    </div>
+  </div>
+<% end %>
