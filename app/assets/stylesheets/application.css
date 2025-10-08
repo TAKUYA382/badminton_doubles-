@@ -221,7 +221,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* ===============================
-   ★追加：未保存ハイライト関連
+   ★未保存ハイライト（Stimulus lineup 用）
    =============================== */
 .pending-slot {
   background: #fff7cc;
@@ -275,4 +275,4 @@ input:focus, select:focus, textarea:focus {
   color: var(--muted);
   border-top: 1px solid var(--border);
   margin-top: 24px;
-}   
+}

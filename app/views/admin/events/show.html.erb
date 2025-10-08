@@ -1,8 +1,7 @@
 <!-- app/views/admin/events/show.html.erb -->
 <div class="page">
-  <!-- ===== ヘッダー（イベントタイトルとステータス） ===== -->
-  <div class="card"
-       style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+  <!-- ===== ヘッダー ===== -->
+  <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
     <div>
       <h1 class="page-title"><%= @event.title.presence || "（タイトル未設定）" %></h1>
       <p class="page-sub">日付：<%= @event.date %> / コート数：<%= @event.court_count %></p>
@@ -13,10 +12,8 @@
         <%= button_to "公開する", publish_admin_event_path(@event), method: :patch, class: "btn btn-primary" %>
       <% else %>
         <span style="color:green;margin-right:8px;">このイベントは公開中です ✅</span>
-        <%= button_to "非公開に戻す", unpublish_admin_event_path(@event),
-              method: :patch,
-              data: { turbo_confirm: "本当に非公開にしますか？" },
-              class: "btn btn-outline" %>
+        <%= button_to "非公開に戻す", unpublish_admin_event_path(@event), method: :patch,
+              data: { turbo_confirm: "本当に非公開にしますか？" }, class: "btn btn-outline" %>
       <% end %>
       <%= link_to "イベントを編集", edit_admin_event_path(@event), class: "btn btn-outline" %>
       <%= button_to "イベントを削除", admin_event_path(@event),
@@ -26,9 +23,8 @@
     </div>
   </div>
 
-  <!-- ===== 自動編成フォーム + 参加者関連リンク ===== -->
-  <div class="card"
-       style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;">
+  <!-- ===== 自動編成フォーム ===== -->
+  <div class="card" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;">
     <%= form_with url: auto_schedule_admin_event_path(@event), method: :post, local: true do %>
       <label>何回戦（男女別）</label>
       <div style="display:flex;gap:6px;align-items:center;">
@@ -47,62 +43,46 @@
       </div>
     <% end %>
 
-    <%= link_to "参加者管理", admin_event_attendances_path(@event),
-          class: "btn btn-outline", style: "margin-left:auto;" %>
-    <%= link_to "参加者をペースト入力", paste_participants_admin_event_path(@event),
-          class: "btn btn-outline" %>
+    <%= link_to "参加者管理", admin_event_attendances_path(@event), class: "btn btn-outline", style: "margin-left:auto;" %>
+    <%= link_to "参加者をペースト入力", paste_participants_admin_event_path(@event), class: "btn btn-outline" %>
   </div>
 
-  <!-- ===== まとめて更新（Stimulus lineup連動） ===== -->
+  <!-- ===== (A) まとめて更新バー（Stimulus lineup） ===== -->
   <div data-controller="lineup"
        data-lineup-bulk-endpoint-value="<%= bulk_update_admin_matches_path %>"
        data-lineup-event-id-value="<%= @event.id %>"
        class="card"
        style="display:flex;gap:8px;align-items:center;margin-bottom:16px;padding:10px;">
     <strong>まとめて更新</strong>
-    <span class="muted">（操作を貯めて一括反映）</span>
+    <span class="muted">（ドラッグ/選択の変更をバッファに貯めて一括保存）</span>
 
-    <span style="margin-left:auto;">バッファ件数：<span data-bulk-count>0</span></span>
+    <span style="margin-left:auto;">
+      バッファ件数：
+      <!-- lineup_controller 側の target として参照される要素 -->
+      <span data-bulk-count>0</span>
+    </span>
 
-    <!-- Stimulus 連動ボタン -->
-    <button class="btn btn-outline btn-mini"
-            data-bulk-reset
-            data-action="click->lineup#resetBuffer">
-      取り消し
-    </button>
-
-    <button class="btn btn-primary btn-mini"
-            data-bulk-commit
-            data-action="click->lineup#commitBuffer">
-      まとめて保存
-    </button>
+    <!-- lineup#resetBuffer / #commitBuffer を直接呼ぶ -->
+    <button class="btn btn-outline btn-mini" data-bulk-reset data-action="click->lineup#resetBuffer">取り消し</button>
+    <button class="btn btn-primary btn-mini" data-bulk-commit data-action="click->lineup#commitBuffer">まとめて保存</button>
   </div>
 
-  <!-- ===== フラッシュメッセージ ===== -->
+  <!-- ===== フラッシュ ===== -->
   <% if flash[:alert].present? %>
-    <div class="card"
-         style="border:1px solid #fca5a5;background:#fee2e2;color:#991b1b;margin-bottom:12px;">
-      <%= flash[:alert] %>
-    </div>
+    <div class="card" style="border:1px solid #fca5a5;background:#fee2e2;color:#991b1b;margin-bottom:12px;"><%= flash[:alert] %></div>
   <% end %>
   <% if flash[:notice].present? %>
-    <div class="card"
-         style="border:1px solid #86efac;background:#dcfce7;color:#14532d;margin-bottom:12px;">
-      <%= flash[:notice] %>
-    </div>
+    <div class="card" style="border:1px solid #86efac;background:#dcfce7;color:#14532d;margin-bottom:12px;"><%= flash[:notice] %></div>
   <% end %>
 
   <div class="layout-2col">
-    <!-- ===== 左カラム：参加回数 + ドラッグ元 ===== -->
+    <!-- ===== 左：参加回数 & ドラッグ元 ===== -->
     <aside class="col-left">
       <h2>参加回数（このイベント）</h2>
-
       <div class="table-wrap">
         <table class="table" style="min-width:320px;">
           <thead>
-            <tr>
-              <th>名前</th><th>学年</th><th>性別</th><th>レベル</th><th>回数</th>
-            </tr>
+            <tr><th>名前</th><th>学年</th><th>性別</th><th>レベル</th><th>回数</th></tr>
           </thead>
           <tbody>
             <% @participations.each do |mem, cnt| %>
@@ -117,13 +97,10 @@
           </tbody>
         </table>
       </div>
-
       <p class="muted" style="margin-top:6px;">※ 回数は対戦作成後に更新されます。</p>
 
-      <!-- ===== ドラッグ元：男女 × レベル帯 ===== -->
       <div class="card" style="margin-top:12px;">
         <div class="card-header">メンバー（ドラッグで差し替え）</div>
-
         <% level_order = %w[A_plus A A_minus B_plus B B_minus C_plus C C_minus D_plus D] %>
         <% genders = { "男子" => :male, "女子" => :female } %>
 
@@ -140,18 +117,14 @@
 
               <div class="chip-section">
                 <div class="chip-section-title">
-                  <span class="lvl-badge lvl-<%= lv %>">
-                    <%= I18n.t("enums.member.skill_level.#{lv}") %>
-                  </span>
+                  <span class="lvl-badge lvl-<%= lv %>"><%= I18n.t("enums.member.skill_level.#{lv}") %></span>
                   <span class="muted" style="margin-left:6px;">(<%= group.size %>人)</span>
                 </div>
 
                 <div class="chip-grid">
                   <% group.sort_by! { |m| [m.name_kana.presence || m.name, m.id] } %>
                   <% group.each do |mem| %>
-                    <span class="member-chip"
-                          draggable="true"
-                          data-member-id="<%= mem.id %>"
+                    <span class="member-chip" draggable="true" data-member-id="<%= mem.id %>"
                           title="<%= [mem.name_kana.presence, mem.grade_label, mem.gender_label].compact.join(' / ') %>">
                       <span class="chip-name"><%= mem.name %></span>
                       <span class="chip-sub"><%= mem.grade_label %></span>
@@ -165,13 +138,11 @@
       </div>
     </aside>
 
-    <!-- ===== 右カラム：対戦表 ===== -->
+    <!-- ===== 右：対戦表（カードは部分テンプレ） ===== -->
     <section class="col-right">
       <h2>対戦表</h2>
-
       <% @event.rounds.order(:index).each do |r| %>
         <% r.matches.order(:court_number).each do |m| %>
-          <!-- 対戦カード（Stimulus対応・未保存ハイライト付き） -->
           <%= render "admin/matches/card", match: m %>
         <% end %>
       <% end %>

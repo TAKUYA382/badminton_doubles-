@@ -1,178 +1,132 @@
 // app/javascript/controllers/lineup_controller.js
 import { Controller } from "@hotwired/stimulus"
 
-// Connects to data-controller="lineup"
 export default class extends Controller {
   static values = {
-    bulkEndpoint: String, // data-lineup-bulk-endpoint-value
-    eventId: Number       // data-lineup-event-id-value
+    bulkEndpoint: String, // bulk_update_admin_matches_path
+    eventId: Number
   }
+  static targets = ["bulkCount"]
 
-  connect() {
-    // バッファ（未保存オペレーション）: {match_id, slot_key, member_id|null, type:"replace"|"clear"}
-    this.buffer = []
-
-    // 「取り消し」「まとめて保存」ボタンにイベントを付与
-    this.resetBtn  = this.element.querySelector("[data-bulk-reset]")
-    this.commitBtn = this.element.querySelector("[data-bulk-commit]")
-    this.countEl   = this.element.querySelector("[data-bulk-count]")
-
-    if (this.resetBtn)  this.resetBtn.addEventListener("click", (e) => { e.preventDefault(); this.resetBuffer() })
-    if (this.commitBtn) this.commitBtn.addEventListener("click", (e) => { e.preventDefault(); this.commitBuffer() })
-
+  connect () {
+    this.buffer = []        // {match_id, slot_key, member_id}
+    this.slotMap = new Map()
     this.updateCount()
   }
 
-  // ================================
-  // 外部（_card.html.erb）からのアクション
-  // ================================
+  // =========================================
+  // ① セレクト変更で自動的にバッファに積む
+  // =========================================
+  bufferReplaceFromSelect (e) {
+    const select = e.currentTarget
+    const memberId = select.value
+    if (!memberId) return
 
-  // セレクトが変更されたら自動で“バッファに積む”
-  bufferReplaceFromSelect(event) {
-    const select = event.currentTarget
-    const memberId = select.value || null
-    const matchId  = Number(select.dataset.matchId)
-    const slotKey  = select.dataset.slotKey
+    const matchId = Number(select.dataset.matchId)
+    const slotKey = select.dataset.slotKey
 
-    if (!matchId || !slotKey) return
-    if (!memberId) return // プロンプト選択に戻したら無視
+    this.pushBuffer(matchId, slotKey, Number(memberId))
+    this.markSlotEdited(select.closest("[data-slot-el]"))
+    this.markCardUnsaved(select.closest("[data-match-el]"))
 
-    this.addToBuffer({ type: "replace", match_id: matchId, slot_key: slotKey, member_id: Number(memberId) })
-    // 未保存ハイライト
-    this.markPending(matchId, slotKey)
+    // 現在表示の名前を仮置きで更新
+    const strong = select.closest("[data-slot-el]")?.querySelector("[data-current-name]")
+    if (strong) strong.textContent = select.options[select.selectedIndex]?.text?.split("（")?.[0] || ""
   }
 
-  // 「⏱ 差し替えをバッファ」ボタンクリック時（近くの select を参照）
-  bufferReplace(event) {
-    const btn = event.currentTarget
+  // =========================================
+  // ② ⏱差し替えをバッファ（手動ボタン版）
+  // =========================================
+  bufferReplace (e) {
+    e.preventDefault()
+    const btn = e.currentTarget
     const matchId = Number(btn.dataset.matchId)
     const slotKey = btn.dataset.slotKey
-    if (!matchId || !slotKey) return
-
-    // 近傍の select[data-member-select] を拾う
-    const wrap = btn.closest(".slot-editor")
-    const select = wrap ? wrap.querySelector("select[data-member-select]") : null
+    const select = btn.closest("[data-slot-el]")?.querySelector('select[data-member-select]')
     if (!select || !select.value) return
 
-    this.addToBuffer({ type: "replace", match_id: matchId, slot_key: slotKey, member_id: Number(select.value) })
-    this.markPending(matchId, slotKey)
+    this.pushBuffer(matchId, slotKey, Number(select.value))
+    this.markSlotEdited(btn.closest("[data-slot-el]"))
+    this.markCardUnsaved(btn.closest("[data-match-el]"))
   }
 
-  // （任意で呼べる）スロットを空にする操作もバッファに積める
-  bufferClear(event) {
-    const btn = event.currentTarget
-    const matchId = Number(btn.dataset.matchId)
-    const slotKey = btn.dataset.slotKey
-    if (!matchId || !slotKey) return
-
-    this.addToBuffer({ type: "clear", match_id: matchId, slot_key: slotKey, member_id: null })
-    this.markPending(matchId, slotKey)
-  }
-
-  // ================================
-  // バッファ操作
-  // ================================
-  addToBuffer(op) {
-    // 同じ match_id + slot_key の旧オペは除去して最新だけ保持
-    this.buffer = this.buffer.filter(o => !(o.match_id === op.match_id && o.slot_key === op.slot_key))
-    this.buffer.push(op)
-    this.updateCount()
-  }
-
-  resetBuffer() {
-    this.buffer = []
-    this.updateCount()
-    this.clearAllPending()
-  }
-
-  updateCount() {
-    if (this.countEl) this.countEl.textContent = this.buffer.length
-  }
-
-  // ================================
-  // 未保存ハイライト
-  // ================================
-  markPending(matchId, slotKey) {
-    // スロット枠の黄色
-    const slot = this.findSlotEl(matchId, slotKey)
-    if (slot) slot.classList.add("pending-slot")
-
-    // 試合カード全体の紫枠 + 「未保存」バッジ表示
-    const card = this.findMatchEl(matchId)
-    if (card) {
-      card.classList.add("pending-match")
-      const badge = card.querySelector("[data-unsaved-badge]")
-      if (badge) badge.style.display = ""
-    }
-  }
-
-  clearAllPending() {
-    // 全カード・全スロットから pending クラスを外す
-    document.querySelectorAll("[data-match-el].pending-match").forEach(el => {
-      el.classList.remove("pending-match")
-      const badge = el.querySelector("[data-unsaved-badge]")
-      if (badge) badge.style.display = "none"
-    })
-    document.querySelectorAll("[data-slot-el].pending-slot").forEach(el => {
-      el.classList.remove("pending-slot")
-    })
-  }
-
-  // ================================
-  // まとめて保存
-  // ================================
-  async commitBuffer() {
-    if (!this.bulkEndpointValue || this.buffer.length === 0) return
+  // =========================================
+  // ③ まとめて保存
+  // =========================================
+  async commitBuffer (e) {
+    e?.preventDefault()
+    if (this.buffer.length === 0) return
 
     try {
-      const token = this.csrfToken()
+      const token = document.querySelector('meta[name="csrf-token"]')?.content
       const res = await fetch(this.bulkEndpointValue, {
-        method: "POST",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           "X-CSRF-Token": token
         },
-        body: JSON.stringify({
-          event_id: this.eventIdValue,
-          operations: this.buffer
-        })
+        body: JSON.stringify({ operations: this.buffer })
       })
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || `保存に失敗しました（${res.status}）`)
+        const msg = await res.text()
+        throw new Error(`一括保存に失敗しました：${msg}`)
       }
 
-      // 成功：バッファをクリアし、未保存ハイライトを解除。画面を再読込して確定状態に。
-      this.resetBuffer()
-      // Turbo/普通リロードどちらでもOK
-      if (window.Turbo && Turbo.visit) {
-        Turbo.visit(window.location.href, { action: "replace" })
-      } else {
-        window.location.reload()
-      }
-    } catch (e) {
-      alert(e.message || "保存に失敗しました")
+      // 成功時リセット＋リロード
+      this.buffer = []
+      this.slotMap.clear()
+      this.updateCount()
+      this.clearEditedMarks()
+      Turbo.visit(window.location.href, { action: "replace" })
+    } catch (err) {
+      alert(err.message || "通信エラー")
     }
   }
 
-  // ================================
-  // ユーティリティ
-  // ================================
-  csrfToken() {
-    const meta = document.querySelector('meta[name="csrf-token"]')
-    return meta && meta.content
+  // =========================================
+  // ④ 取り消し（リセット）
+  // =========================================
+  resetBuffer (e) {
+    e?.preventDefault()
+    this.buffer = []
+    this.slotMap.clear()
+    this.updateCount()
+    this.clearEditedMarks()
   }
 
-  findMatchEl(matchId) {
-    // 同じ match-card でもこのページ内だけを対象にする
-    return document.querySelector(`[data-match-el][data-match-id="${matchId}"]`)
+  // =========================================
+  // 内部ユーティリティ
+  // =========================================
+  pushBuffer (matchId, slotKey, memberId) {
+    const key = ${matchId}:${slotKey}
+    this.slotMap.set(key, memberId)
+    this.buffer = this.buffer.filter(op => !(op.match_id === matchId && op.slot_key === slotKey))
+    this.buffer.push({ match_id: matchId, slot_key: slotKey, member_id: memberId })
+    this.updateCount()
   }
 
-  findSlotEl(matchId, slotKey) {
-    // 指定カード内の該当スロットを返す
-    const card = this.findMatchEl(matchId)
-    if (!card) return null
-    return card.querySelector(`[data-slot-el][data-drop-slot="${slotKey}"]`)
+  updateCount () {
+    if (this.hasBulkCountTarget) this.bulkCountTarget.textContent = String(this.buffer.length)
+  }
+
+  markSlotEdited (el) {
+    if (el) el.classList.add("slot-editor--edited")
+  }
+
+  markCardUnsaved (card) {
+    if (!card) return
+    card.classList.add("match-card--unsaved")
+    const badge = card.querySelector("[data-unsaved-badge]")
+    if (badge) badge.style.display = ""
+  }
+
+  clearEditedMarks () {
+    document.querySelectorAll(".slot-editor--edited").forEach(e => e.classList.remove("slot-editor--edited"))
+    document.querySelectorAll(".match-card--unsaved").forEach(card => {
+      card.classList.remove("match-card--unsaved")
+      const badge = card.querySelector("[data-unsaved-badge]")
+      if (badge) badge.style.display = "none"
+    })
   }
 }

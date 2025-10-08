@@ -1,11 +1,14 @@
 <%= turbo_frame_tag dom_id(match) do %>
-  <div class="match-card" data-match-id="<%= match.id %>">
+  <!-- 未保存ハイライト対象（紫枠） -->
+  <div class="match-card" data-match-id="<%= match.id %>" data-match-el>
     <div class="match-card__header">
       <span><%= match.round.index %>回戦</span>
       <span><%= match.court_number %>コート</span>
       <% if match.respond_to?(:gender_label) %>
         <span><%= match.gender_label %></span>
       <% end %>
+      <!-- 「未保存」バッジ（バッファに積まれたら表示） -->
+      <span class="badge-unsaved" data-unsaved-badge style="display:none;">未保存</span>
     </div>
 
     <div class="match-card__body">
@@ -23,17 +26,18 @@
               <% ["pair1_member1", "pair1_member2"].each do |slot_key| %>
                 <% mem = match.send(slot_key) %>
                 <div class="slot-editor drop-target"
+                     data-slot-el
                      data-drop-slot="<%= slot_key %>"
                      data-match-id="<%= match.id %>"
                      data-update-url="<%= update_slot_admin_event_path(match.round.event) %>">
                   <div class="info">
                     <div>
-                      <strong><%= mem&.name || "（未設定）" %></strong>
+                      <strong data-current-name><%= mem&.name || "（未設定）" %></strong>
                       <% if mem %>（<%= mem.grade_label %>・<%= mem.gender_label %>・<%= mem.skill_label %>）<% end %>
                     </div>
                   </div>
 
-                  <!-- クリア -->
+                  <!-- 即時反映：スロットを空にする -->
                   <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
                     <%= hidden_field_tag :match_id, match.id %>
                     <%= hidden_field_tag :slot_key, slot_key %>
@@ -41,7 +45,7 @@
                     <button class="btn btn-outline btn-compact" title="スロットを空にする">×</button>
                   <% end %>
 
-                  <!-- セレクト差し替え -->
+                  <!-- 即時反映：セレクト差し替え（ボタン押下で反映） -->
                   <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
                     <%= hidden_field_tag :match_id, match.id %>
                     <%= hidden_field_tag :slot_key, slot_key %>
@@ -50,11 +54,18 @@
                             @drag_members, :id,
                             ->(mm){ "#{mm.name}（#{mm.grade_label}・#{mm.gender_label}・#{mm.skill_label}）" }
                           ),
-                          prompt: "選択して差し替え", class: "select-compact" %>
+                          prompt: "選択して差し替え",
+                          class: "select-compact",
+                          data: {
+                            member_select: true,
+                            action: "change->lineup#bufferReplaceFromSelect", # 変更＝バッファに積む
+                            match_id: match.id,
+                            slot_key: slot_key
+                          } %>
                     <button class="btn btn-primary btn-compact" title="選択で差し替え">🔁</button>
                   <% end %>
 
-                  <!-- バッファに積む（まとめて更新用・Stimulus lineup） -->
+                  <!-- まとめて更新：バッファに積む（近くの select を参照） -->
                   <button class="btn btn-outline btn-compact"
                           data-action="click->lineup#bufferReplace"
                           data-match-id="<%= match.id %>"
@@ -71,17 +82,18 @@
               <% ["pair2_member1", "pair2_member2"].each do |slot_key| %>
                 <% mem = match.send(slot_key) %>
                 <div class="slot-editor drop-target"
+                     data-slot-el
                      data-drop-slot="<%= slot_key %>"
                      data-match-id="<%= match.id %>"
                      data-update-url="<%= update_slot_admin_event_path(match.round.event) %>">
                   <div class="info">
                     <div>
-                      <strong><%= mem&.name || "（未設定）" %></strong>
+                      <strong data-current-name><%= mem&.name || "（未設定）" %></strong>
                       <% if mem %>（<%= mem.grade_label %>・<%= mem.gender_label %>・<%= mem.skill_label %>）<% end %>
                     </div>
                   </div>
 
-                  <!-- クリア -->
+                  <!-- 即時反映：スロットを空にする -->
                   <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
                     <%= hidden_field_tag :match_id, match.id %>
                     <%= hidden_field_tag :slot_key, slot_key %>
@@ -89,7 +101,7 @@
                     <button class="btn btn-outline btn-compact" title="スロットを空にする">×</button>
                   <% end %>
 
-                  <!-- セレクト差し替え -->
+                  <!-- 即時反映：セレクト差し替え（ボタン押下で反映） -->
                   <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
                     <%= hidden_field_tag :match_id, match.id %>
                     <%= hidden_field_tag :slot_key, slot_key %>
@@ -98,11 +110,18 @@
                             @drag_members, :id,
                             ->(mm){ "#{mm.name}（#{mm.grade_label}・#{mm.gender_label}・#{mm.skill_label}）" }
                           ),
-                          prompt: "選択して差し替え", class: "select-compact" %>
+                          prompt: "選択して差し替え",
+                          class: "select-compact",
+                          data: {
+                            member_select: true,
+                            action: "change->lineup#bufferReplaceFromSelect",
+                            match_id: match.id,
+                            slot_key: slot_key
+                          } %>
                     <button class="btn btn-primary btn-compact" title="選択で差し替え">🔁</button>
                   <% end %>
 
-                  <!-- バッファに積む -->
+                  <!-- まとめて更新：バッファに積む -->
                   <button class="btn btn-outline btn-compact"
                           data-action="click->lineup#bufferReplace"
                           data-match-id="<%= match.id %>"
