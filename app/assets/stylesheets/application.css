@@ -123,7 +123,14 @@ h3 { font-size: 18px; margin: 16px 0 8px; }
 /* ===============================
    ボタン
    =============================== */
-.btn { display: inline-block; padding: 6px 14px; border-radius: 4px; cursor: pointer; transition: .2s; border: none; }
+.btn {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: .2s;
+  border: none;
+}
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:hover { opacity: .9; }
 .btn-outline { background: #fff; border: 1px solid var(--accent); color: var(--accent); }
@@ -153,16 +160,25 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* ===============================
-   バッジ（お好みで色変更OK）
+   バッジ
    =============================== */
-.badge { display: inline-block; padding: .25rem .5rem; border-radius: 9999px; font-size: .85rem; line-height: 1; border: 1px solid rgba(0,0,0,.08); background: #f3f4f6; color: #111; }
+.badge {
+  display: inline-block;
+  padding: .25rem .5rem;
+  border-radius: 9999px;
+  font-size: .85rem;
+  line-height: 1;
+  border: 1px solid rgba(0,0,0,.08);
+  background: #f3f4f6;
+  color: #111;
+}
 .badge-gray  { background: #f3f4f6; color:#111; }
 .badge-blue  { background: #dbeafe; color:#111; }
 .badge-green { background: #dcfce7; color:#111; }
 .badge-amber { background: #fef3c7; color:#111; }
 .badge-violet{ background: #ede9fe; color:#111; }
 
-/* A+〜D（例） */
+/* A+〜D（レベルバッジ） */
 .badge-lvl-A_plus { background:#1e3a8a; color:#fff; }
 .badge-lvl-A      { background:#1d4ed8; color:#fff; }
 .badge-lvl-A_minus{ background:#3b82f6; color:#fff; }
@@ -176,7 +192,7 @@ input:focus, select:focus, textarea:focus {
 .badge-lvl-D      { background:#fda4af; color:#111; }
 
 /* ===============================
-   ドラッグ用チップ（イベント詳細左側）
+   ドラッグ用チップ（左側）
    =============================== */
 .member-chip {
   display: inline-block;
@@ -190,14 +206,46 @@ input:focus, select:focus, textarea:focus {
 }
 .member-chip:active { cursor: grabbing; }
 
-/* スロットエディタ（右側テーブルの差し替え枠） */
+/* ===============================
+   スロットエディタ（右側）
+   =============================== */
 .slot-editor {
   border: 1px dashed var(--border);
   border-radius: 6px;
   padding: 8px;
   margin-bottom: 8px;
 }
-.slot-editor.drop-target.dragover { background: #faf5ff; border-color: var(--accent); }
+.slot-editor.drop-target.dragover {
+  background: #faf5ff;
+  border-color: var(--accent);
+}
+
+/* ===============================
+   ★追加：未保存ハイライト関連
+   =============================== */
+.pending-slot {
+  background: #fff7cc;
+  border-color: #facc15;
+  box-shadow: 0 0 0 2px #fde68a inset;
+  transition: background .2s ease, box-shadow .2s ease;
+}
+
+.pending-match {
+  border: 2px solid #c4b5fd !important; /* violet-300 */
+  background: #faf5ff33;
+  transition: border .2s ease, background .2s ease;
+}
+
+.badge-unsaved {
+  display: inline-block;
+  background: #fde68a;
+  color: #92400e;
+  border: 1px solid #facc15;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  margin-left: 8px;
+}
 
 /* ===============================
    管理：対人関係セクション
@@ -210,12 +258,15 @@ input:focus, select:focus, textarea:focus {
   margin-top: 20px;
 }
 .relation-section .form-inline {
-  display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
 }
 .relation-section .form-inline select { min-width: 160px; }
 
 /* ===============================
-   フッター（任意）
+   フッター
    =============================== */
 .site-footer {
   text-align: center;
@@ -224,4 +275,4 @@ input:focus, select:focus, textarea:focus {
   color: var(--muted);
   border-top: 1px solid var(--border);
   margin-top: 24px;
-}
+}   

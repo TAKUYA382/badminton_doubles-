@@ -19,15 +19,15 @@ Rails.application.routes.draw do
                 only: [:index, :create, :update, :destroy]
 
       # 自動編成・公開切替など
-      post  :auto_schedule, on: :member
-      patch :publish,       on: :member
-      patch :unpublish,     on: :member
+      post  :auto_schedule, on: :member   # POST  /admin/events/:id/auto_schedule
+      patch :publish,       on: :member   # PATCH /admin/events/:id/publish
+      patch :unpublish,     on: :member   # PATCH /admin/events/:id/unpublish
 
       # 手動スロット編集（単発API）
-      patch :update_slot,   on: :member
+      patch :update_slot,   on: :member   # PATCH /admin/events/:id/update_slot
 
-      # 差し替え候補取得
-      get :available_members, on: :member
+      # 差し替え候補取得（必要なら）
+      get :available_members, on: :member # GET   /admin/events/:id/available_members
 
       # 参加者一括ペースト
       member do
@@ -42,14 +42,14 @@ Rails.application.routes.draw do
 
     # マッチ編集系
     resources :matches, only: [] do
-      # 既存：個別操作用（後方互換のため残置）
-      patch :reorder,        on: :collection
-      patch :swap,           on: :collection
-      patch :clear_slot,     on: :member
-      patch :replace_member, on: :member
+      # 既存：個別操作
+      patch :reorder,        on: :collection   # 並び替え
+      patch :swap,           on: :collection   # 2スロット入れ替え（DnD）
+      patch :clear_slot,     on: :member       # 単一スロットクリア
+      patch :replace_member, on: :member       # 単一スロット差し替え
 
-      # 追加：まとめて更新（バッファ送信）
-      # エンドポイント: PATCH /admin/matches/bulk_update
+      # ★追加：まとめて更新（バッファ送信）
+      # PATCH /admin/matches/bulk_update
       patch :bulk_update,    on: :collection
     end
   end
