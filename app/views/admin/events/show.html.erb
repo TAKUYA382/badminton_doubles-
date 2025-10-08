@@ -47,7 +47,7 @@
     <%= link_to "参加者をペースト入力", paste_participants_admin_event_path(@event), class: "btn btn-outline" %>
   </div>
 
-  <!-- ★ ここが“まとめて更新（バッファ）”バー：Stimulus lineup を紐付け -->
+  <!-- ===== まとめて更新（バッファ保存）バー ===== -->
   <div data-controller="lineup"
        data-lineup-bulk-endpoint-value="<%= bulk_update_admin_matches_path %>"
        data-lineup-event-id-value="<%= @event.id %>"
@@ -72,7 +72,7 @@
   <% end %>
 
   <div class="layout-2col">
-    <!-- 左：参加回数 + ドラッグ元 -->
+    <!-- ===== 左カラム：参加回数 + ドラッグ元 ===== -->
     <aside class="col-left">
       <h2>参加回数（このイベント）</h2>
       <div class="table-wrap">
@@ -97,7 +97,7 @@
       </div>
       <p class="muted" style="margin-top:6px;">※ 回数は対戦作成後に更新されます。</p>
 
-      <!-- ▼ ドラッグ元：男女×レベル帯で表示 -->
+      <!-- ▼ ドラッグ元（男女・レベル別） -->
       <div class="card" style="margin-top:12px;">
         <div class="card-header">メンバー（ドラッグで差し替え）</div>
 
@@ -140,13 +140,14 @@
       </div>
     </aside>
 
-    <!-- 右：対戦表（編集可） -->
+    <!-- ===== 右カラム：対戦表（編集可） ===== -->
     <section class="col-right">
       <h2>対戦表</h2>
+
       <% @event.rounds.order(:index).each do |r| %>
         <% r.matches.order(:court_number).each do |m| %>
-          <!-- 1試合カードは部分テンプレに委譲（部分側で「⏱差し替えをバッファ」ボタンなどを表示） -->
-          <%= render "admin/matches/card", match: m %>
+          <!-- 1試合カード：部分テンプレに drag_members を渡す -->
+          <%= render "admin/matches/card", match: m, drag_members: @drag_members %>
         <% end %>
       <% end %>
     </section>

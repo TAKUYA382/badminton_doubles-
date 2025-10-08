@@ -1,4 +1,3 @@
-# app/controllers/admin/events_controller.rb
 class Admin::EventsController < Admin::BaseController
   before_action :set_event, only: %i[
     show edit update destroy publish unpublish auto_schedule update_slot
@@ -20,15 +19,14 @@ class Admin::EventsController < Admin::BaseController
     end
     @participations = counts.to_a.sort_by { |(mem, c)| [-c, mem.name] }
 
-    # ▼ 変更点：ドラッグ候補＝このイベントで「参加(attending)」のメンバーだけ
-    # もし全員候補で見たい時は /admin/events/:id?all=1 にアクセス（任意）
+    # ▼ ドラッグ候補（参加者）
     use_all = params[:all].to_s == "1"
-    scope   = use_all ? Member.active : participants_scope_for(@event) # ← attending だけ
+    scope   = use_all ? Member.active : participants_scope_for(@event)
 
-    # ビューで使う候補
-    @drag_members    = scope.order(:name)                 # 丸いチップのドラッグ元
-    @all_members     = @drag_members                      # 既存の部分が @all_members を見ていても動くように合わせておく
-    @available_members = available_members(scope)         # 「未使用のみ」を同じスコープで
+    # ▼ ここを修正：右側の対戦表に確実に渡せるように定義
+    @drag_members = scope.order(:name)
+    @all_members  = @drag_members
+    @available_members = available_members(scope)
   end
 
   # 新規
@@ -45,7 +43,6 @@ class Admin::EventsController < Admin::BaseController
     end
   end
 
-  # 編集
   def edit; end
 
   def update
@@ -56,13 +53,11 @@ class Admin::EventsController < Admin::BaseController
     end
   end
 
-  # 削除
   def destroy
     @event.destroy
     redirect_to admin_events_path, notice: "イベントを削除しました"
   end
 
-  # 公開/非公開
   def publish
     if @event.update(status: :published)
       redirect_to admin_event_path(@event), notice: "イベントを公開しました"
@@ -93,7 +88,7 @@ class Admin::EventsController < Admin::BaseController
     end
   end
 
-  # スロット編集
+  # スロット編集（既存のまま）
   def update_slot
     match     = Match.includes(:round).find(params[:match_id])
     slot      = params[:slot_key].to_s
@@ -157,27 +152,26 @@ class Admin::EventsController < Admin::BaseController
     params.require(:event).permit(:title, :date, :court_count, :status)
   end
 
-  # 未使用メンバーのみ（与えられたベーススコープ内で）
+  # 未使用メンバーのみ
   def available_members(base_scope)
     used_ids = @event.rounds.flat_map { |r| r.matches.flat_map(&:members) }.compact.map(&:id)
     base_scope.where.not(id: used_ids).order(:name)
   end
 
-  # ★ 参加者スコープ：このイベントで「attending」になっているメンバーのみ
-  #   ※ EventParticipant を使う構成前提。Attendances を使っていない点に注意。
+  # 参加者スコープ（出欠「参加」だけ）
   def participants_scope_for(event)
     ids = event.event_participants.attending.pluck(:member_id).uniq
     Member.active.where(id: ids)
   end
 
-  # NG関係チェック（双方向）
+  # NG関係チェック
   def relation_blocked?(a_id, b_id, kind)
     MemberRelation.where(kind: MemberRelation.kinds[kind])
                   .where("(member_id = :a AND other_member_id = :b) OR (member_id = :b AND other_member_id = :a)", a: a_id, b: b_id)
                   .exists?
   end
 
-  # スロットから味方/相手を判定
+  # 味方/相手ペア判定
   def teammates_and_opponents_for(match, slot_key)
     case slot_key
     when "pair1_member1" then [match.pair1_member2, [match.pair2_member1, match.pair2_member2].compact]

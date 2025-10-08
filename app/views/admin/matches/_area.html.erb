@@ -1,0 +1,8 @@
+<%# app/views/admin/matches/_area.html.erb %>
+<%# このテンプレートは show.html.erb から event と drag_members を受け取る想定 %>
+
+<% event.rounds.order(:index).each do |r| %>
+  <% r.matches.order(:court_number).each do |m| %>
+    <%= render "admin/matches/card", match: m, drag_members: drag_members %>
+  <% end %>
+<% end %>
