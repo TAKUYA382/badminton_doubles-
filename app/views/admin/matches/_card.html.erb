@@ -1,87 +1,121 @@
-<%# app/views/admin/matches/_card.html.erb %>
-<%# 必要ローカル: match, drag_members %>
-
 <%= turbo_frame_tag dom_id(match) do %>
   <div class="match-card" data-match-id="<%= match.id %>">
     <div class="match-card__header">
       <span><%= match.round.index %>回戦</span>
       <span><%= match.court_number %>コート</span>
-      <%# 性別表示（あれば） %>
-      <span><%= match.gender_label if match.respond_to?(:gender_label) %></span>
+      <% if match.respond_to?(:gender_label) %>
+        <span><%= match.gender_label %></span>
+      <% end %>
     </div>
 
     <div class="match-card__body">
-      <%# ========== 共通：1スロットの編集ブロック ========== %>
-      <% slot_block = lambda do |slot_key| %>
-        <% mem = match.send(slot_key) %>
+      <table class="table" style="min-width:780px;">
+        <thead>
+          <tr>
+            <th style="width:50%;">ペア1（編集可）</th>
+            <th style="width:50%;">ペア2（編集可）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <!-- ===== ペア1 ===== -->
+            <td>
+              <% ["pair1_member1", "pair1_member2"].each do |slot_key| %>
+                <% mem = match.send(slot_key) %>
+                <div class="slot-editor drop-target"
+                     data-drop-slot="<%= slot_key %>"
+                     data-match-id="<%= match.id %>"
+                     data-update-url="<%= update_slot_admin_event_path(match.round.event) %>">
+                  <div class="info">
+                    <div>
+                      <strong><%= mem&.name || "（未設定）" %></strong>
+                      <% if mem %>（<%= mem.grade_label %>・<%= mem.gender_label %>・<%= mem.skill_label %>）<% end %>
+                    </div>
+                  </div>
 
-        <div class="slot-editor drop-target"
-             data-drop-slot="<%= slot_key %>"
-             data-match-id="<%= match.id %>"
-             data-update-url="<%= update_slot_admin_event_path(match.round.event) %>">
-          <div class="info" style="margin-bottom:6px;">
-            <div>
-              <strong><%= mem&.name || "（未設定）" %></strong>
-              <% if mem %>
-                （<%= mem.grade_label %>・<%= mem.gender_label %>・<%= mem.skill_label %>）
+                  <!-- クリア -->
+                  <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
+                    <%= hidden_field_tag :match_id, match.id %>
+                    <%= hidden_field_tag :slot_key, slot_key %>
+                    <%= hidden_field_tag :clear, "1" %>
+                    <button class="btn btn-outline btn-compact" title="スロットを空にする">×</button>
+                  <% end %>
+
+                  <!-- セレクト差し替え -->
+                  <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
+                    <%= hidden_field_tag :match_id, match.id %>
+                    <%= hidden_field_tag :slot_key, slot_key %>
+                    <%= select_tag :member_id,
+                          options_from_collection_for_select(
+                            @drag_members, :id,
+                            ->(mm){ "#{mm.name}（#{mm.grade_label}・#{mm.gender_label}・#{mm.skill_label}）" }
+                          ),
+                          prompt: "選択して差し替え", class: "select-compact" %>
+                    <button class="btn btn-primary btn-compact" title="選択で差し替え">🔁</button>
+                  <% end %>
+
+                  <!-- バッファに積む（まとめて更新用・Stimulus lineup） -->
+                  <button class="btn btn-outline btn-compact"
+                          data-action="click->lineup#bufferReplace"
+                          data-match-id="<%= match.id %>"
+                          data-slot-key="<%= slot_key %>"
+                          data-select-ref="true">
+                    ⏱ 差し替えをバッファ
+                  </button>
+                </div>
               <% end %>
-            </div>
-          </div>
+            </td>
 
-          <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-            <%# クリア %>
-            <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
-              <%= hidden_field_tag :match_id, match.id %>
-              <%= hidden_field_tag :slot_key, slot_key %>
-              <%= hidden_field_tag :clear, "1" %>
-              <button class="btn btn-outline btn-compact" title="このスロットを空にする">×</button>
-            <% end %>
+            <!-- ===== ペア2 ===== -->
+            <td>
+              <% ["pair2_member1", "pair2_member2"].each do |slot_key| %>
+                <% mem = match.send(slot_key) %>
+                <div class="slot-editor drop-target"
+                     data-drop-slot="<%= slot_key %>"
+                     data-match-id="<%= match.id %>"
+                     data-update-url="<%= update_slot_admin_event_path(match.round.event) %>">
+                  <div class="info">
+                    <div>
+                      <strong><%= mem&.name || "（未設定）" %></strong>
+                      <% if mem %>（<%= mem.grade_label %>・<%= mem.gender_label %>・<%= mem.skill_label %>）<% end %>
+                    </div>
+                  </div>
 
-            <%# 差し替えセレクト（★重要：候補は drag_members を使う） %>
-            <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true, style: "display:flex; gap:6px; align-items:center;" do %>
-              <%= hidden_field_tag :match_id, match.id %>
-              <%= hidden_field_tag :slot_key, slot_key %>
+                  <!-- クリア -->
+                  <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
+                    <%= hidden_field_tag :match_id, match.id %>
+                    <%= hidden_field_tag :slot_key, slot_key %>
+                    <%= hidden_field_tag :clear, "1" %>
+                    <button class="btn btn-outline btn-compact" title="スロットを空にする">×</button>
+                  <% end %>
 
-              <%= select_tag :member_id,
-                    options_from_collection_for_select(
-                      drag_members,
-                      :id,
-                      ->(mm) { "#{mm.name}（#{mm.grade_label}・#{mm.gender_label}・#{mm.skill_label}）" },
-                      mem&.id # 既存メンバーがいれば初期選択
-                    ),
-                    include_blank: "選択して差し替え",
-                    class: "select-compact",
-                    title: "候補から選んで差し替え" %>
+                  <!-- セレクト差し替え -->
+                  <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
+                    <%= hidden_field_tag :match_id, match.id %>
+                    <%= hidden_field_tag :slot_key, slot_key %>
+                    <%= select_tag :member_id,
+                          options_from_collection_for_select(
+                            @drag_members, :id,
+                            ->(mm){ "#{mm.name}（#{mm.grade_label}・#{mm.gender_label}・#{mm.skill_label}）" }
+                          ),
+                          prompt: "選択して差し替え", class: "select-compact" %>
+                    <button class="btn btn-primary btn-compact" title="選択で差し替え">🔁</button>
+                  <% end %>
 
-              <button class="btn btn-primary btn-compact">🔁 差し替え</button>
-            <% end %>
-
-            <%# （任意）まとめて更新バッファに入れるボタンを置く場合
-                data-* は Stimulus(lineup) で拾う想定。無ければ削除可。 %>
-            <button class="btn btn-outline btn-compact"
-                    data-action="click->lineup#queueReplace"
-                    data-lineup-match-id-value="<%= match.id %>"
-                    data-lineup-slot-key-value="<%= slot_key %>"
-                    data-lineup-current-member-id-value="<%= mem&.id %>">
-              ⏱ 差し替えをバッファ
-            </button>
-          </div>
-        </div>
-      <% end %>
-
-      <%# ========== ペア1 ========== %>
-      <div class="pair">
-        <div class="pair-title">ペア1（編集可）</div>
-        <%= slot_block.call("pair1_member1") %>
-        <%= slot_block.call("pair1_member2") %>
-      </div>
-
-      <%# ========== ペア2 ========== %>
-      <div class="pair">
-        <div class="pair-title">ペア2（編集可）</div>
-        <%= slot_block.call("pair2_member1") %>
-        <%= slot_block.call("pair2_member2") %>
-      </div>
+                  <!-- バッファに積む -->
+                  <button class="btn btn-outline btn-compact"
+                          data-action="click->lineup#bufferReplace"
+                          data-match-id="<%= match.id %>"
+                          data-slot-key="<%= slot_key %>"
+                          data-select-ref="true">
+                    ⏱ 差し替えをバッファ
+                  </button>
+                </div>
+              <% end %>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 <% end %>

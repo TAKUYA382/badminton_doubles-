@@ -47,7 +47,7 @@
     <%= link_to "参加者をペースト入力", paste_participants_admin_event_path(@event), class: "btn btn-outline" %>
   </div>
 
-  <!-- ===== まとめて更新（バッファ保存）バー ===== -->
+  <!-- ===== まとめて更新（バッファ保存）バー（Stimulus lineup を使う場合はこのまま） ===== -->
   <div data-controller="lineup"
        data-lineup-bulk-endpoint-value="<%= bulk_update_admin_matches_path %>"
        data-lineup-event-id-value="<%= @event.id %>"
@@ -143,11 +143,10 @@
     <!-- ===== 右カラム：対戦表（編集可） ===== -->
     <section class="col-right">
       <h2>対戦表</h2>
-
       <% @event.rounds.order(:index).each do |r| %>
         <% r.matches.order(:court_number).each do |m| %>
-          <!-- 1試合カード：部分テンプレに drag_members を渡す -->
-          <%= render "admin/matches/card", match: m, drag_members: @drag_members %>
+          <!-- 部分テンプレは @drag_members を参照するので、ローカル渡しは不要 -->
+          <%= render "admin/matches/card", match: m %>
         <% end %>
       <% end %>
     </section>
