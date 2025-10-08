@@ -74,7 +74,7 @@ class Admin::MatchesController < Admin::BaseController
   # ================================
   # ★ まとめて更新（バッファ適用）
   # Stimulus lineup_controller.js が送る JSON 例:
-  # POST /admin/matches/bulk_update
+  # POST/PATCH /admin/matches/bulk_update
   # {
   #   "event_id": 99,
   #   "operations": [
@@ -85,11 +85,13 @@ class Admin::MatchesController < Admin::BaseController
   # }
   # ================================
   def bulk_update
-    ops = params.require(:operations)
-    raise ActionController::ParameterMissing, "operations は配列で送ってください" unless ops.is_a?(Array)
+    ops = ops_params # ← Strong Parameters でサニタイズ
+    if ops.blank?
+      return respond_bulk_error!("operations は空にできません", :bad_request)
+    end
 
-    # 同一試合の更新をまとめてロック＆順適用するためにグルーピング
-    grouped = ops.group_by { |o| (o[:match_id] || o["match_id"]).to_i }
+    # 同一試合の更新をまとめてロック＆順適用
+    grouped = ops.group_by { |o| o[:match_id] }
     updated_matches = []
 
     ActiveRecord::Base.transaction do
@@ -97,9 +99,9 @@ class Admin::MatchesController < Admin::BaseController
         match = Match.lock.find(match_id)
 
         operations.each do |op|
-          type     = (op[:type] || op["type"]).to_s
-          slot_key = (op[:slot_key] || op["slot_key"]).to_s
-          member_v =  op[:member_id].presence || op["member_id"].presence
+          type     = op[:type]
+          slot_key = op[:slot_key]
+          member_v = op[:member_id]
 
           unless valid_slot?(slot_key)
             raise ActiveRecord::RecordInvalid.new(match), "不正なスロットです（#{slot_key}）"
@@ -115,7 +117,7 @@ class Admin::MatchesController < Admin::BaseController
               raise ActiveRecord::RecordInvalid.new(match), "メンバーIDが不正です"
             end
 
-            # 同ラウンド重複の簡易チェック（モデル側で厳密チェックしているなら不要）
+            # 同ラウンド重複の簡易チェック（モデルで厳密チェックがあるなら省略可）
             if match.member_already_used_in_round?(member_id)
               raise ActiveRecord::RecordInvalid.new(match), "同じラウンドで重複しています（ID: #{member_id}）"
             end
@@ -131,43 +133,59 @@ class Admin::MatchesController < Admin::BaseController
       end
     end
 
-    respond_to do |format|
-      # Turbo Stream：更新カードをまとめて差し替え & フラッシュ
-      format.turbo_stream do
-        render turbo_stream: turbo_stream_updates_for(updated_matches)
-      end
-      format.json { render json: { ok: true, updated_ids: updated_matches.map(&:id) } }
-      format.html do
-        event = updated_matches.first&.round&.event || Event.find_by(id: params[:event_id])
-        redirect_to(event ? admin_event_path(event) : admin_root_path, notice: "まとめて更新しました（#{updated_matches.size}件）")
-      end
-    end
+    respond_bulk_ok!(updated_matches)
   rescue ActiveRecord::RecordInvalid => e
     message = e.record.errors.full_messages.presence&.join(", ") || e.message
-    respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream_flash(:alert, message), status: :unprocessable_entity }
-      format.json         { render json: { ok: false, error: message }, status: :unprocessable_entity }
-      format.html         { redirect_back fallback_location: admin_root_path, alert: message }
-    end
+    respond_bulk_error!(message, :unprocessable_entity)
   rescue ActionController::ParameterMissing => e
-    respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream_flash(:alert, e.message), status: :bad_request }
-      format.json         { render json: { ok: false, error: e.message }, status: :bad_request }
-      format.html         { redirect_back fallback_location: admin_root_path, alert: e.message }
-    end
+    respond_bulk_error!(e.message, :bad_request)
   rescue => e
-    respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream_flash(:alert, e.message), status: :internal_server_error }
-      format.json         { render json: { ok: false, error: e.message }, status: :internal_server_error }
-      format.html         { redirect_back fallback_location: admin_root_path, alert: e.message }
-    end
+    respond_bulk_error!(e.message, :internal_server_error)
   end
 
   private
 
+  # ---- Strong Parameters（operations は配列）
+  def ops_params
+    raw = params.require(:operations)
+    raise ActionController::ParameterMissing, "operations は配列で送ってください" unless raw.is_a?(Array)
+    raw.map do |p|
+      ActionController::Parameters.new(p)
+        .permit(:type, :match_id, :slot_key, :member_id)
+        .tap do |h|
+          h[:match_id] = h[:match_id].to_i if h[:match_id]
+          # member_id は nil を許容（clear時）。replace時に to_i で扱う
+        end
+        .to_h.symbolize_keys
+    end
+  end
+
   # 許可スロット
   def valid_slot?(key)
     %w[pair1_member1 pair1_member2 pair2_member1 pair2_member2].include?(key)
+  end
+
+  # ===== レスポンス共通処理 =====
+  def respond_bulk_ok!(matches)
+    respond_to do |format|
+      # Turbo Stream：更新カードをまとめて差し替え & フラッシュ
+      format.turbo_stream do
+        render turbo_stream: turbo_stream_updates_for(matches)
+      end
+      format.json { render json: { ok: true, updated_ids: matches.map(&:id) } }
+      format.html do
+        event = matches.first&.round&.event || Event.find_by(id: params[:event_id])
+        redirect_to(event ? admin_event_path(event) : admin_root_path, notice: "まとめて更新しました（#{matches.size}件）")
+      end
+    end
+  end
+
+  def respond_bulk_error!(message, status)
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream_flash(:alert, message), status: status }
+      format.json         { render json: { ok: false, error: message }, status: status }
+      format.html         { redirect_back fallback_location: admin_root_path, alert: message }
+    end
   end
 
   # 更新済みカードをまとめて差し替える Turbo Stream を生成
@@ -184,7 +202,7 @@ class Admin::MatchesController < Admin::BaseController
   end
 
   # 簡易フラッシュ（Turbo Stream）
-  # ※ layouts 等に <div id="flash"></div> を置いておくと差し替えられます
+  # ※ レイアウトに <div id="flash"></div> を置く or shared/_flash を使う
   def turbo_stream_flash(kind, message)
     turbo_stream.replace(
       "flash",
