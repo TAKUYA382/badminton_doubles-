@@ -1,6 +1,8 @@
 <%= turbo_frame_tag dom_id(match) do %>
   <!-- 未保存ハイライト対象（紫枠） -->
-  <div class="match-card" data-match-id="<%= match.id %>" data-match-el>
+  <div class="match-card"
+       data-match-id="<%= match.id %>"
+       data-match-el>
     <div class="match-card__header">
       <span><%= match.round.index %>回戦</span>
       <span><%= match.court_number %>コート</span>
@@ -8,7 +10,9 @@
         <span><%= match.gender_label %></span>
       <% end %>
       <!-- 「未保存」バッジ（バッファに積まれたら表示） -->
-      <span class="badge-unsaved" data-unsaved-badge style="display:none;">未保存</span>
+      <span class="badge-unsaved"
+            data-unsaved-badge
+            style="display:none;">未保存</span>
     </div>
 
     <div class="match-card__body">
@@ -30,6 +34,7 @@
                      data-drop-slot="<%= slot_key %>"
                      data-match-id="<%= match.id %>"
                      data-update-url="<%= update_slot_admin_event_path(match.round.event) %>">
+
                   <div class="info">
                     <div>
                       <strong data-current-name><%= mem&.name || "（未設定）" %></strong>
@@ -38,15 +43,18 @@
                   </div>
 
                   <!-- 即時反映：スロットを空にする -->
-                  <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
+                  <%= form_with url: update_slot_admin_event_path(match.round.event),
+                                method: :patch, local: true do %>
                     <%= hidden_field_tag :match_id, match.id %>
                     <%= hidden_field_tag :slot_key, slot_key %>
                     <%= hidden_field_tag :clear, "1" %>
-                    <button class="btn btn-outline btn-compact" title="スロットを空にする">×</button>
+                    <button class="btn btn-outline btn-compact"
+                            title="スロットを空にする">×</button>
                   <% end %>
 
-                  <!-- 即時反映：セレクト差し替え（ボタン押下で反映） -->
-                  <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
+                  <!-- 即時反映 or バッファ積み対応セレクト -->
+                  <%= form_with url: update_slot_admin_event_path(match.round.event),
+                                method: :patch, local: true do %>
                     <%= hidden_field_tag :match_id, match.id %>
                     <%= hidden_field_tag :slot_key, slot_key %>
                     <%= select_tag :member_id,
@@ -57,15 +65,16 @@
                           prompt: "選択して差し替え",
                           class: "select-compact",
                           data: {
-                            member_select: true,
-                            action: "change->lineup#bufferReplaceFromSelect", # 変更＝バッファに積む
+                            member_select: true,  # ★Stimulusが探す対象
+                            action: "change->lineup#bufferReplaceFromSelect",
                             match_id: match.id,
                             slot_key: slot_key
                           } %>
-                    <button class="btn btn-primary btn-compact" title="選択で差し替え">🔁</button>
+                    <button class="btn btn-primary btn-compact"
+                            title="選択で即時差し替え">🔁</button>
                   <% end %>
 
-                  <!-- まとめて更新：バッファに積む（近くの select を参照） -->
+                  <!-- まとめて更新：この select の値をバッファへ積む -->
                   <button class="btn btn-outline btn-compact"
                           data-action="click->lineup#bufferReplace"
                           data-match-id="<%= match.id %>"
@@ -86,6 +95,7 @@
                      data-drop-slot="<%= slot_key %>"
                      data-match-id="<%= match.id %>"
                      data-update-url="<%= update_slot_admin_event_path(match.round.event) %>">
+
                   <div class="info">
                     <div>
                       <strong data-current-name><%= mem&.name || "（未設定）" %></strong>
@@ -94,15 +104,18 @@
                   </div>
 
                   <!-- 即時反映：スロットを空にする -->
-                  <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
+                  <%= form_with url: update_slot_admin_event_path(match.round.event),
+                                method: :patch, local: true do %>
                     <%= hidden_field_tag :match_id, match.id %>
                     <%= hidden_field_tag :slot_key, slot_key %>
                     <%= hidden_field_tag :clear, "1" %>
-                    <button class="btn btn-outline btn-compact" title="スロットを空にする">×</button>
+                    <button class="btn btn-outline btn-compact"
+                            title="スロットを空にする">×</button>
                   <% end %>
 
-                  <!-- 即時反映：セレクト差し替え（ボタン押下で反映） -->
-                  <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
+                  <!-- 即時反映 or バッファ積み対応セレクト -->
+                  <%= form_with url: update_slot_admin_event_path(match.round.event),
+                                method: :patch, local: true do %>
                     <%= hidden_field_tag :match_id, match.id %>
                     <%= hidden_field_tag :slot_key, slot_key %>
                     <%= select_tag :member_id,
@@ -113,15 +126,16 @@
                           prompt: "選択して差し替え",
                           class: "select-compact",
                           data: {
-                            member_select: true,
+                            member_select: true,  # ★ここも必要
                             action: "change->lineup#bufferReplaceFromSelect",
                             match_id: match.id,
                             slot_key: slot_key
                           } %>
-                    <button class="btn btn-primary btn-compact" title="選択で差し替え">🔁</button>
+                    <button class="btn btn-primary btn-compact"
+                            title="選択で即時差し替え">🔁</button>
                   <% end %>
 
-                  <!-- まとめて更新：バッファに積む -->
+                  <!-- まとめて更新：この select の値をバッファへ積む -->
                   <button class="btn btn-outline btn-compact"
                           data-action="click->lineup#bufferReplace"
                           data-match-id="<%= match.id %>"
