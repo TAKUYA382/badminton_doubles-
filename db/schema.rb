@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_09_18_152938) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_05_130332) do
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -42,6 +42,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_18_152938) do
     t.integer "status", default: 1, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "arrival_round"
+    t.integer "leave_round"
     t.index ["event_id", "member_id"], name: "index_event_participants_on_event_id_and_member_id", unique: true
     t.index ["event_id"], name: "index_event_participants_on_event_id"
     t.index ["member_id"], name: "index_event_participants_on_member_id"

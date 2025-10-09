@@ -1,0 +1,46 @@
+ja:
+  devise:
+    failure:
+      unauthenticated: "続行するにはログインが必要です。"
+      admin:
+        unauthenticated: "管理画面にアクセスするにはログインしてください。"
+      invalid: "メールアドレスまたはパスワードが正しくありません。"
+      locked: "アカウントはロックされています。"
+      last_attempt: "あと1回でアカウントがロックされます。"
+
+    sessions:
+      signed_in: "ログインしました。"
+      signed_out: "ログアウトしました。"
+      already_signed_out: "すでにログアウト済みです。"
+
+    registrations:
+      signed_up: "登録が完了しました。"
+      updated: "アカウント情報を更新しました。"
+      destroyed: "アカウントを削除しました。"
+
+    passwords:
+      send_instructions: "パスワード再設定の案内を送信しました。"
+      updated: "パスワードを変更しました。"
+
+    confirmations:
+      send_instructions: "確認メールを送信しました。"
+      confirmed: "メールアドレスの確認が完了しました。"
+
+    mailer:
+      confirmation_instructions:
+        subject: "アカウントの確認"
+      reset_password_instructions:
+        subject: "パスワード再設定の案内"
+      unlock_instructions:
+        subject: "アカウントのロック解除"
+
+  helpers:
+    submit:
+      session:
+        create: "ログイン"
+      password:
+        create: "送信"
+        update: "更新"
+      registration:
+        create: "登録"
+        update: "更新"

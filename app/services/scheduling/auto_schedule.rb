@@ -4,18 +4,19 @@
 require "set"
 
 module Scheduling
+  # 成否とエラーメッセージだけを返す薄い結果クラス
   class Result < Struct.new(:success?, :error_message); end
 
   class AutoSchedule
-    # mode: "split"（男女別）, "mixed"（MIX）
+    # mode: "split"（男女別） / "mixed"（MIX）
     # target_rounds: 生成するラウンド数（nil なら 1）
     def initialize(event, target_rounds: nil, mode: "split")
       @event         = event
       @courts        = event.court_count.to_i
-      @members       = pick_base_members(event) # 「不参加以外」のメンバー
+      @members       = pick_base_members(event)          # 「不参加以外」のメンバー
       @target_rounds = (target_rounds.presence || 1).to_i
       @mode          = mode.to_s
-      @ep_cache      = {} # member_id => EventParticipant
+      @ep_cache      = {}                                # member_id => EventParticipant
     end
 
     def call
@@ -38,14 +39,14 @@ module Scheduling
 
       Result.new(true, nil)
     rescue => e
+      # 例外は握り込んで Result として返す（コントローラ側でログ推奨）
       Result.new(false, e.message)
     end
 
     private
 
     # ===============================
-    # 参加者の抽出：「不参加」以外
-    # attending / late / early_leave / undecided を対象
+    # 参加者抽出：「不参加」以外（attending/late/early_leave/undecided）
     # ===============================
     def pick_base_members(event)
       eps = event.event_participants
@@ -64,7 +65,7 @@ module Scheduling
     # ラウンド在席判定（1-indexed）
     # - arrival_round が nil なら最初から在席
     # - leave_round / departure_round が nil なら最後まで在席
-    # ※ カラム名の揺れに両対応
+    # - arrival / leave といった別名にもゆるく対応
     # ===============================
     def available_on_round?(member, round_idx)
       ep = @ep_cache[member.id] || @event.event_participants.find_by(member_id: member.id)
@@ -93,7 +94,7 @@ module Scheduling
     end
 
     # ===============================
-    # 男女別
+    # 男女別：男子→女子の順に強いカードから詰める
     # ===============================
     def schedule_split_ranked!
       male_courts   = (@courts / 2.0).ceil
@@ -104,7 +105,7 @@ module Scheduling
         used_round = Set.new
         made       = [] # [[:male/:female, desired_band(4..1), p1, p2], ...]
 
-        # 今ラウンド在席メンバー
+        # 今ラウンド在席
         avail   = @members.select { |m| available_on_round?(m, round_idx) }
         males   = avail.select { |m| gender_of(m) == :male }
         females = avail.select { |m| gender_of(m) == :female }
@@ -129,7 +130,7 @@ module Scheduling
           mark_used!(quad, used_round)
         end
 
-        # 作れた分だけ強い順に詰める（欠番なし）
+        # 作れた分だけ強い順（同帯なら試合強度降順）で 1..@courts に採番
         male_made   = made.select { |sex, *_| sex == :male }
                           .sort_by { |_sex, band, p1, p2| [-band, -match_strength(p1, p2)] }
         female_made = made.select { |sex, *_| sex == :female }
@@ -149,6 +150,7 @@ module Scheduling
       end
     end
 
+    # コート位置→帯（A=4, B=3, C=2, D=1）
     def band_for_position(pos)
       case pos
       when 1 then 4
@@ -160,7 +162,7 @@ module Scheduling
     end
 
     # ===============================
-    # MIX
+    # MIX：出場回数の少なさ優先で 4 人ずつ拾って作成
     # ===============================
     def schedule_mixed_balanced!
       1.upto(@target_rounds) do |round_idx|
@@ -201,9 +203,9 @@ module Scheduling
 
       sorted = pool.sort_by do |m|
         [
-          (band_of(m) - desired_band).abs,
-          @played_counts[m.id],
-          -fine_skill(m),
+          (band_of(m) - desired_band).abs, # 目標帯からの距離
+          @played_counts[m.id],            # 出場回数の少なさ
+          -fine_skill(m),                  # 細かい強さ（降順）
           m.id
         ]
       end
@@ -217,6 +219,7 @@ module Scheduling
       pick
     end
 
+    # 4人を2ペアに分ける：ペア内差 +（必要なら）帯ターゲットからのズレ を最小化
     def best_pairing_for_quad(quad, desired_band)
       a, b, c, d = quad
       candidates = [
@@ -242,6 +245,7 @@ module Scheduling
         [p1, p2, p1_gap + p2_gap + dev]
       end.compact
 
+      # すべて NG ならペア差最小で決定
       if scored.empty?
         scored = candidates.map do |p1, p2|
           p1_gap = (fine_skill(p1[0]) - fine_skill(p1[1])).abs
@@ -254,26 +258,23 @@ module Scheduling
       [best[0], best[1]]
     end
 
-    def match_strength(p1, p2)
-      pair_strength(p1) + pair_strength(p2)
-    end
+    # コート並べ替え用の“試合強度”
+    def match_strength(p1, p2) = pair_strength(p1) + pair_strength(p2)
+    def pair_strength(pair)    = pair.sum { |m| fine_skill(m) }
 
-    def pair_strength(pair)
-      pair.sum { |m| fine_skill(m) }
-    end
-
+    # 帯の代表値（吸着用）
     def representative_score_for_band(band)
       case band
-      when 4 then 100
-      when 3 then 70
-      when 2 then 40
-      when 1 then 10
+      when 4 then 100 # A帯
+      when 3 then 70  # B帯
+      when 2 then 40  # C帯
+      when 1 then 10  # D帯
       else 0
       end
     end
 
     # ===============================
-    # 属性・カウント
+    # 属性 → 数値化
     # ===============================
     def fine_skill(member)
       if defined?(Member) && Member.respond_to?(:skill_levels) && member.respond_to?(:skill_level)
@@ -291,22 +292,25 @@ module Scheduling
       }
       return table[norm] if table.key?(norm)
 
+      # ゆるい表記対応
       return 9 if norm.include?("ADVANCED")
       return 6 if norm.include?("MIDDLE")
       return 3 if norm.include?("BEGINNER")
       0
     end
 
+    # A/B/C/D の 4 帯へ圧縮（A=4, B=3, C=2, D=1）
     def band_of(member)
       s = fine_skill(member)
       case s
-      when 8..10 then 4
-      when 5..7  then 3
-      when 2..4  then 2
-      else            1
+      when 8..10 then 4 # A帯（A-,A,A+）
+      when 5..7  then 3 # B帯
+      when 2..4  then 2 # C帯
+      else            1 # D帯
       end
     end
 
+    # gender を :male / :female / :unknown に正規化（日本語も許容）
     def gender_of(member)
       g = (member.respond_to?(:gender) && member.gender).to_s.strip.downcase
       return :male   if %w[male m 男 男子].include?(g)
@@ -333,7 +337,7 @@ module Scheduling
     end
 
     # ===============================
-    # NG helpers
+    # NG helpers（定義が無い環境でも落ちないようガード）
     # ===============================
     def ng_pair?(a, b)
       return false unless defined?(MemberRelation) && MemberRelation.respond_to?(:ng_between?)
