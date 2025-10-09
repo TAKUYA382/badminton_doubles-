@@ -1,3 +1,4 @@
+# app/services/scheduling/auto_schedule.rb
 # frozen_string_literal: true
 
 require "set"
@@ -25,8 +26,10 @@ module Scheduling
       return Result.new(false, "コート数が1以上必要です") if @courts < 1
 
       ActiveRecord::Base.transaction do
-        # 既存の編成は作り直し
-        @event.rounds.destroy_all
+        # --- 既存の編成を完全削除（子→親の順で物理削除）---
+        round_ids = @event.rounds.pluck(:id)
+        Match.where(round_id: round_ids).delete_all if round_ids.any?
+        Round.where(id: round_ids).delete_all
 
         case @mode
         when "split" then schedule_split_ranked!
@@ -48,7 +51,6 @@ module Scheduling
     # 参加者抽出：「不参加」以外（attending/late/early_leave/undecided）
     # ===============================
     def pick_base_members(event)
-      # enumが未定義でもnil安全に
       absent_value =
         if defined?(EventParticipant) && EventParticipant.respond_to?(:statuses)
           EventParticipant.statuses["absent"] rescue nil
@@ -237,7 +239,7 @@ module Scheduling
     end
 
     def match_strength(p1, p2) = pair_strength(p1) + pair_strength(p2)
-    def pair_strength(pair) = pair.sum { |m| fine_skill(m) }
+    def pair_strength(pair)    = pair.sum { |m| fine_skill(m) }
 
     def representative_score_for_band(band)
       { 4 => 100, 3 => 70, 2 => 40, 1 => 10 }[band] || 0
@@ -249,13 +251,13 @@ module Scheduling
         return val.to_i if val
       end
 
-      key = member.respond_to?(:skill_level) ? member.skill_level.to_s.strip : ""
+      key  = member.respond_to?(:skill_level) ? member.skill_level.to_s.strip : ""
       norm = key.upcase.gsub("-", "_")
       table = {
         "A_PLUS" => 10, "A" => 9, "A_MINUS" => 8,
-        "B_PLUS" => 7, "B" => 6, "B_MINUS" => 5,
-        "C_PLUS" => 4, "C" => 3, "C_MINUS" => 2,
-        "D_PLUS" => 1, "D" => 0
+        "B_PLUS" => 7,  "B" => 6, "B_MINUS" => 5,
+        "C_PLUS" => 4,  "C" => 3, "C_MINUS" => 2,
+        "D_PLUS" => 1,  "D" => 0
       }
       table[norm] || case
                      when norm.include?("ADVANCED") then 9
