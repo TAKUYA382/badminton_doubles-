@@ -1,13 +1,12 @@
 <%= turbo_frame_tag dom_id(match) do %>
-  <!-- 未保存ハイライト対象（紫枠） -->
-  <div class="match-card" data-match-id="<%= match.id %>" data-match-el>
+  <!-- 対戦カード（未保存ハイライト対象） -->
+  <div class="match-card" data-match-el data-match-id="<%= match.id %>">
     <div class="match-card__header">
       <span><%= match.round.index %>回戦</span>
       <span><%= match.court_number %>コート</span>
       <% if match.respond_to?(:gender_label) %>
         <span><%= match.gender_label %></span>
       <% end %>
-      <!-- バッファに積まれたら表示 -->
       <span class="badge-unsaved" data-unsaved-badge style="display:none;">未保存</span>
     </div>
 
@@ -43,10 +42,10 @@
                     <%= hidden_field_tag :match_id, match.id %>
                     <%= hidden_field_tag :slot_key, slot_key %>
                     <%= hidden_field_tag :clear, "1" %>
-                    <button class="btn btn-outline btn-compact" title="スロットを空にする">×</button>
+                    <button type="submit" class="btn btn-outline btn-compact" title="スロットを空にする">×</button>
                   <% end %>
 
-                  <!-- 即時反映 or バッファ積み対応セレクト -->
+                  <!-- セレクト：変更＝バッファに積む（即時反映ボタンも残す） -->
                   <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
                     <%= hidden_field_tag :match_id, match.id %>
                     <%= hidden_field_tag :slot_key, slot_key %>
@@ -58,21 +57,22 @@
                           prompt: "選択して差し替え",
                           class: "select-compact",
                           data: {
-                            member_select: true,                      # ★ lineup が拾う目印
+                            member_select: true,
                             action: "change->lineup#bufferReplaceFromSelect",
                             match_id: match.id,
                             slot_key: slot_key
                           } %>
-                    <button class="btn btn-primary btn-compact" title="選択で即時差し替え">🔁</button>
+                    <button type="submit" class="btn btn-primary btn-compact" title="選択で即時差し替え">🔁</button>
                   <% end %>
 
                   <!-- まとめて更新：この select の値をバッファへ積む -->
-                  <button type="button"                                        <!-- ★ これ重要 -->
-                          class="btn btn-outline btn-compact"
-                          data-action="click->lineup#bufferReplace"
-                          data-match-id="<%= match.id %>"
-                          data-slot-key="<%= slot_key %>"
-                          data-select-ref="true">
+                  <button
+                    type="button"
+                    class="btn btn-outline btn-compact"
+                    data-action="click->lineup#bufferReplace"
+                    data-match-id="<%= match.id %>"
+                    data-slot-key="<%= slot_key %>"
+                    data-select-ref="true">
                     ⏱ 差し替えをバッファ
                   </button>
                 </div>
@@ -101,10 +101,10 @@
                     <%= hidden_field_tag :match_id, match.id %>
                     <%= hidden_field_tag :slot_key, slot_key %>
                     <%= hidden_field_tag :clear, "1" %>
-                    <button class="btn btn-outline btn-compact" title="スロットを空にする">×</button>
+                    <button type="submit" class="btn btn-outline btn-compact" title="スロットを空にする">×</button>
                   <% end %>
 
-                  <!-- 即時反映 or バッファ積み対応セレクト -->
+                  <!-- セレクト：変更＝バッファに積む -->
                   <%= form_with url: update_slot_admin_event_path(match.round.event), method: :patch, local: true do %>
                     <%= hidden_field_tag :match_id, match.id %>
                     <%= hidden_field_tag :slot_key, slot_key %>
@@ -116,21 +116,22 @@
                           prompt: "選択して差し替え",
                           class: "select-compact",
                           data: {
-                            member_select: true,                      # ★ ここも必須
+                            member_select: true,
                             action: "change->lineup#bufferReplaceFromSelect",
                             match_id: match.id,
                             slot_key: slot_key
                           } %>
-                    <button class="btn btn-primary btn-compact" title="選択で即時差し替え">🔁</button>
+                    <button type="submit" class="btn btn-primary btn-compact" title="選択で即時差し替え">🔁</button>
                   <% end %>
 
                   <!-- まとめて更新：この select の値をバッファへ積む -->
-                  <button type="button"                                        <!-- ★ これ重要 -->
-                          class="btn btn-outline btn-compact"
-                          data-action="click->lineup#bufferReplace"
-                          data-match-id="<%= match.id %>"
-                          data-slot-key="<%= slot_key %>"
-                          data-select-ref="true">
+                  <button
+                    type="button"
+                    class="btn btn-outline btn-compact"
+                    data-action="click->lineup#bufferReplace"
+                    data-match-id="<%= match.id %>"
+                    data-slot-key="<%= slot_key %>"
+                    data-select-ref="true">
                     ⏱ 差し替えをバッファ
                   </button>
                 </div>
